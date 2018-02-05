@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/cauu/js-blockchain#readme",
   "dependencies": {
+    "big-integer": "^1.6.26",
     "sha256": "^0.2.0"
   }
 }

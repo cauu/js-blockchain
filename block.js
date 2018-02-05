@@ -22,6 +22,10 @@ class Block {
       prevBlockHash
     });
 
+    /**
+     * @todo
+     * 调用共识算法，得到一个合法的区块
+     */
     block.setHash();
 
     return block;
