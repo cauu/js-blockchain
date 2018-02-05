@@ -7,14 +7,28 @@ const bigInt = require('big-integer');
  * 
  * pow算法的原理就是用撞库的方式不断寻找一个小于给定target的过程
  */
-const target = 16;
+const targetBits = 16;
 
 class POW {
-  constructor() {
+  constructor(block, targetNonce) {
+    this.block = block;
+    this.targetNonce = targetNonce;
   }
 
   static newProofOfWork(block) {
     const big = bigInt(1);
+    big.shiftLeft(256 - targetBits);
+
+    return new POW(block, big);
+  }
+
+  prepareData(nonce) {
+    return pow.block.prevBlockHash
+      + pow.block.data
+      + pow.block.timeStamp
+      + targetBits
+      + nonce
+    ;
   }
 
   /**
@@ -24,7 +38,26 @@ class POW {
    * 才能成功创建区块
    */
   run() {
+    let nonce = 0;
+    while(nonce < Number.MAX_VALUE) {
+      const data = this.prepareData(nonce);
+      const hash = sha256(data);
+      /**
+       * @todo 
+       * sha256的结果转化为bigint
+       */
+      if(targetNonce.greater(bigInt(hash, 16))) {
+        break;
+      } else {
+        nonce++;
+      }
+    }
+    return {
+      nonce,
+      hash
+    };
   }
+
 }
 
 module.exports = POW;
