@@ -1,4 +1,5 @@
 const sha256 = require('sha256');
+const POW = require('./pow');
 
 class Block {
   constructor(args) {
@@ -26,7 +27,10 @@ class Block {
      * @todo
      * 调用共识算法，得到一个合法的区块
      */
-    block.setHash();
+    const { nonce, hash } = POW.newProofOfWork(block).run();
+    block.hash = hash;
+    block.nonce = nonce;
+    // block.setHash();
 
     return block;
   }
