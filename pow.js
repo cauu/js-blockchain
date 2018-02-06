@@ -31,6 +31,13 @@ class POW {
     ;
   }
 
+  validate() {
+    const data = this.prepareData(this.block.nonce);
+    const hash = sha256(data);
+
+    return this.targetNonce.greater(bigInt(hash, 16));
+  }
+
   /**
    * @desc
    * 创建新区块的时候需要先调用run函数，
