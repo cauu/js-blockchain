@@ -35,6 +35,24 @@ class Block {
     return block;
   }
 
+  static deserializeBlock(blockStr) {
+    try {
+      console.log(blockStr);
+      return new Block(JSON.parse(blockStr));
+    } catch(e) {
+      console.log(e);
+    }
+  }
+
+  serialize() {
+    return JSON.stringify({
+      timeStamp: this.timeStamp,
+      data: this.data,
+      prevBlockHash: this.prevBlockHash,
+      hash: this.hash
+    });
+  }
+
   setHash() {
     const headers = this.prevBlockHash + this.data + this.timeStamp;
     
