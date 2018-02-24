@@ -23,7 +23,7 @@ class BlockChain {
   /**
    * @desc
    */
-  static newBlockChain() {
+  static newBlockChain(address) {
     const db = level(DB);
     
     return db.get('l')
@@ -31,7 +31,7 @@ class BlockChain {
         return Promise.resolve(new BlockChain(db));
       })
       .catch((e) => {
-        const genesis = BlockChain.newGenesisBlock();
+        const genesis = BlockChain.newGenesisBlock(address);
 
         return db.put('l', genesis.hash)
           .then(() => {
@@ -49,8 +49,10 @@ class BlockChain {
    * @desc
    * 创建一个新的block
    */
-  static newGenesisBlock() {
-    return Block.newBlock("GenesisBlock", "");
+  static newGenesisBlock(address) {
+    const coinBaseTx = Transaction.createCoinbaseTransaction(address);
+
+    return Block.newBlock([coinBaseTx], "");
   }
 
   getBlock(hash) {

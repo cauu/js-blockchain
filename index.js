@@ -7,6 +7,8 @@ const POW = require('./pow');
 
 const level = require('level');
 
+const DB = 'chainDB';
+
 // const chain = BlockChain.newBlockChain();
 // process.stdout.write('\n');
 // chain.addBlock('My first transaction!');
@@ -22,7 +24,6 @@ const level = require('level');
 //   console.log(`POW: ${POW.newProofOfWork(block).validate()}`);
 //   console.log('---------------------------------');
 // });
-
 const testAddressA = 'martin';
 const testAddressB = 'yoyo';
 
@@ -33,9 +34,16 @@ BlockChain.newBlockChain().then((chain) => {
       console.log('block', block);
       iter.next().then((block) => {
         console.log('block', block);
-      }).catch((e) => {
-        console.log(e);
+        iter.next().then((b) => {
+          console.log(b);
+        })
       });
     });
   });
 });
+
+// const db = level(DB);
+
+// db.get('l').then((value) => {
+//   console.log(value);
+// });

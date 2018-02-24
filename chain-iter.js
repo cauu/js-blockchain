@@ -1,6 +1,6 @@
 /**
- * @desc
- * 从后往前倒序遍历整个区块链
+ * @desc 从后往前倒序遍历整个区块链
+ * @todo fix unable iterToBegining
  */
 class ChainIterator {
   constructor(chain) {
