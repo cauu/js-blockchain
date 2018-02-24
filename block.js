@@ -1,25 +1,28 @@
 const sha256 = require('sha256');
 const POW = require('./pow');
 
+/**
+ * @todo 使用transaction代替之前的data
+ */
 class Block {
   constructor(args) {
     const {
       timeStamp,
-      data,
       prevBlockHash,
       hash,
+      transactions
     } = args;
 
     this.timeStamp = timeStamp;
-    this.data = data;
     this.prevBlockHash = prevBlockHash;
     this.hash = hash;
+    this.transactions = transactions;
   }
 
-  static newBlock(data, prevBlockHash) {
+  static newBlock(transactions, prevBlockHash) {
     const block = new Block({
       timeStamp: new Date().getTime(),
-      data,
+      transactions,
       prevBlockHash
     });
 
@@ -37,7 +40,6 @@ class Block {
 
   static deserializeBlock(blockStr) {
     try {
-      console.log(blockStr);
       return new Block(JSON.parse(blockStr));
     } catch(e) {
       console.log(e);
@@ -49,7 +51,8 @@ class Block {
       timeStamp: this.timeStamp,
       data: this.data,
       prevBlockHash: this.prevBlockHash,
-      hash: this.hash
+      hash: this.hash,
+      transactions: this.transactions
     });
   }
 

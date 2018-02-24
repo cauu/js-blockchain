@@ -23,9 +23,11 @@ const level = require('level');
 //   console.log('---------------------------------');
 // });
 
+const testAddressA = 'martin';
+const testAddressB = 'yoyo';
 
 BlockChain.newBlockChain().then((chain) => {
-  chain.addBlock('test').then(() => {
+  chain.addBlock().then(() => {
     const iter = new ChainIter(chain);
     iter.next().then((block) => {
       console.log('block', block);
