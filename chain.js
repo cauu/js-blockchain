@@ -91,7 +91,7 @@ class BlockChain {
 
         const newBlock = Block.newBlock([coinBaseTx], hash);
 
-        this.db.put(newBlock.hash, newBlock.serialize())
+        return this.db.put(newBlock.hash, newBlock.serialize())
           .then(() => {
             return this.db.put('l', newBlock.hash).then(() => Promise.resolve());
           })
