@@ -92,7 +92,7 @@ class BlockChain {
       console.log('*****************************');
     };
 
-    bci.goThrough(printCurrent);
+    bci.map(printCurrent);
   }
 
   /**
@@ -121,7 +121,7 @@ class BlockChain {
     const spentTXOs = {};
     const bci = this.iterator();
 
-    return bci.goThrough((block) => {
+    return bci.map((block) => {
       for(let i = 0; i < block.transactions.length; i++) {
         const tx = block.transactions[i];
 
@@ -130,7 +130,7 @@ class BlockChain {
          */
         tx.vout.forEach((out, idx) => {
           if(!!spentTXOs[tx.id]) {
-            for(let j = 0; j < spentTXOs[tx.id]; j++) {
+            for(let j = 0; j < spentTXOs[tx.id].length; j++) {
               if(spentTXOs[tx.id][j] === idx) {
                 return;
               }
@@ -145,17 +145,14 @@ class BlockChain {
         if(!tx.isCoinbase()) {
           tx.vin.forEach((tin) => {
             if(tin.canUnlockOutputWith(address)) {
-              if(!spentTXOs[tx.id]) {
-                spentTXOs[tx.id] = [];
+              if(!spentTXOs[tin.txId]) {
+                spentTXOs[tin.txId] = [];
               }
 
-              spentTXOs[tx.id].push(tin.vout);
+              spentTXOs[tin.txId].push(tin.vout);
             }
           });
         }
-        // if(!block.prevBlockHash) {
-        //   return;
-        // }
       }
     }).then(() => {
       return unspentTXs;

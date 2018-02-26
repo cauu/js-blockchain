@@ -59,6 +59,8 @@ class Transaction {
       const tx = new Transaction('', inputs, outputs);
       tx.id = tx.hash();
 
+      console.log('outputs', tx, acc, amount);
+
       return tx;
     });
   }
@@ -76,7 +78,7 @@ class Transaction {
    */
   isCoinbase() {
     return this.vin.length && this.vin.length === 1 &&
-      this.vin[0].txId === 0 && tx.vin[0].vout === -1;
+      this.vin[0].txId === '' && this.vin[0].vout === -1;
   }
 
   serialize() {

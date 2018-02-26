@@ -9,7 +9,7 @@ class ChainIterator {
     this.nextHash = null;
   }
 
-  goThrough(cb) {
+  map(cb) {
     const that = this;
 
     return new Promise((resolve, reject) => {

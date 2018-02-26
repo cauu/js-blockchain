@@ -10,6 +10,9 @@ class TxInput {
     this.scriptSig = scriptSig;
   }
 
+  /**
+   * @todo
+   */
   canUnlockOutputWith(unlockingData) {
     return this.scriptSig === unlockingData;
   }
