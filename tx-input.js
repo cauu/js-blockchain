@@ -4,7 +4,7 @@
  * @property {string} scriptSig 
  **/
 class TxInput {
-  constructor(txId, vout, scriptSig) {
+  constructor({ txId, vout, scriptSig }) {
     this.txId = txId;
     this.vout = vout;
     this.scriptSig = scriptSig;

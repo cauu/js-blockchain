@@ -1,5 +1,5 @@
 class TxOutput {
-  constructor(value, scriptPubKey) {
+  constructor({ value, scriptPubKey }) {
     this.value = value;
     this.scriptPubKey = scriptPubKey;
   }

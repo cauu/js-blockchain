@@ -52,7 +52,7 @@ class BlockChain {
   static newGenesisBlock(address) {
     const coinBaseTx = Transaction.createCoinbaseTransaction(address);
 
-    return Block.newBlock([coinBaseTx], "");
+    return Block.newBlock([coinBaseTx], '');
   }
 
   getBlock(hash) {
@@ -78,18 +78,34 @@ class BlockChain {
   }
 
   iterator() {
-    return ChainIter(this);
+    return new ChainIter(this);
+  }
+
+  print() {
+    const bci = this.iterator();
+
+    function printCurrent(block) {
+      console.log(block);
+      block.transactions.forEach((tx) => {
+        console.log(tx);
+      });
+      console.log('*****************************');
+    };
+
+    bci.goThrough(printCurrent);
   }
 
   /**
-   * @todo 将所有的txs打包到区块中
+   * @todo 挖矿
+   * @param {array} txs 需要打包的交易信息
+   * @param {string} address 矿工的地址
    */
-  addBlock(txs) {
+  mineBlock(txs = [], address) {
     return this.getLastHash()
       .then((hash) => {
-        const coinBaseTx = Transaction.createCoinbaseTransaction(testAddress);
+        const coinBaseTx = Transaction.createCoinbaseTransaction(address);
 
-        const newBlock = Block.newBlock([coinBaseTx], hash);
+        const newBlock = Block.newBlock([coinBaseTx, ...txs], hash);
 
         return this.db.put(newBlock.hash, newBlock.serialize())
           .then(() => {
@@ -105,9 +121,7 @@ class BlockChain {
     const spentTXOs = {};
     const bci = this.iterator();
 
-    while(true) {
-      const block = bci.next();
-
+    return bci.goThrough((block) => {
       for(let i = 0; i < block.transactions.length; i++) {
         const tx = block.transactions[i];
 
@@ -130,7 +144,7 @@ class BlockChain {
 
         if(!tx.isCoinbase()) {
           tx.vin.forEach((tin) => {
-            if(tin.canBeUnlockWith(address)) {
+            if(tin.canUnlockOutputWith(address)) {
               if(!spentTXOs[tx.id]) {
                 spentTXOs[tx.id] = [];
               }
@@ -139,57 +153,60 @@ class BlockChain {
             }
           });
         }
-
-        if(!block.prevBlockHash) {
-          break;
-        }
+        // if(!block.prevBlockHash) {
+        //   return;
+        // }
       }
-    }
-    return unspentTXs;
+    }).then(() => {
+      return unspentTXs;
+    });
   }
 
   findUTXO(address) {
     const UTXOs = [];
 
-    this.findUnspentTransactions(address).forEach((utx) => {
-      utx.vout.forEach((out) => {
-        if(out.canBeUnlockWith(address)) {
-          UTXOs.push(out);
-        }
+    return this.findUnspentTransactions(address).then((utxs) => {
+      utxs.forEach((utx) => {
+        utx.vout.forEach((out) => {
+          if(out.canBeUnlockWith(address)) {
+            UTXOs.push(out);
+          }
+        });
       });
-    });
 
-    return UTXOs;
+      return Promise.resolve(UTXOs);
+    });
   }
 
   findSpendableOutputs(address, amount) {
     /**
      * @todo 找到address对应的用户所有可消耗的output
      */
-    const utxs = this.findUnspentTransactions(address);
-    let acc = 0;
-    let validTXs = {};
+    return this.findUnspentTransactions(address).then((utxs) => {
+      let acc = 0;
+      let validTXs = {};
 
-    for(let i = 0; i < utxs.length; i++) {
-      utxs[i].vout.forEach((out, outIdx) => {
-        if(out.canBeUnlockWith(address) && acc < amount) {
-          acc += utxo[i].value;
+      for(let i = 0; i < utxs.length; i++) {
+        utxs[i].vout.forEach((out, outIdx) => {
+          if(out.canBeUnlockWith(address) && acc < amount) {
+            acc += out.value;
 
-          if(!validTXs[utxs[i].id]) {
-            validTXs[utxs[i].id] = [];
+            if(!validTXs[utxs[i].id]) {
+              validTXs[utxs[i].id] = [];
+            }
+
+            validTXs[utxs[i].id].push(outIdx);
           }
+        });
 
-          validTXs[utxs[i].id].push(outIdx);
-        }
-      });
+        if(acc > amount) break;
+      }
 
-      if(acc > amount) break;
-    }
-
-    return {
-      acc,
-      validTXs
-    };
+      return {
+        acc,
+        validTXs
+      };
+    });
   }
 }
 

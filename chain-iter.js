@@ -9,6 +9,25 @@ class ChainIterator {
     this.nextHash = null;
   }
 
+  goThrough(cb) {
+    const that = this;
+
+    return new Promise((resolve, reject) => {
+      function nextCb(block) {
+        if(!block) {
+          resolve();
+          return;
+        }
+
+        cb(block);
+
+        that.next().then(nextCb);
+      };
+
+      that.next().then(nextCb);
+    });
+  }
+
   next() {
     const iterToNext = (hash) => {
       return this.chain

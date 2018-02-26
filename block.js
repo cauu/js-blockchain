@@ -1,5 +1,9 @@
 const sha256 = require('sha256');
+
 const POW = require('./pow');
+const TxInput = require('./tx-input');
+const TxOutput = require('./tx-output');
+const Transaction = require('./transaction');
 
 /**
  * @todo 使用transaction代替之前的data
@@ -40,7 +44,19 @@ class Block {
 
   static deserializeBlock(blockStr) {
     try {
-      return new Block(JSON.parse(blockStr));
+      const blockObj = new Block(JSON.parse(blockStr));
+
+      blockObj.transactions = blockObj.transactions.map((tx) => {
+        tx = new Transaction(tx.id, tx.vin, tx.vout, tx.createdAt);
+
+        tx.vin = tx.vin.map(txin => new TxInput(txin));
+
+        tx.vout = tx.vout.map(txout => new TxOutput(txout));
+
+        return tx;
+      });
+
+      return blockObj;
     } catch(e) {
       console.log(e);
     }
