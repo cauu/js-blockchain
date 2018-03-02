@@ -59,8 +59,6 @@ class Transaction {
       const tx = new Transaction('', inputs, outputs);
       tx.id = tx.hash();
 
-      console.log('outputs', tx, acc, amount);
-
       return tx;
     });
   }

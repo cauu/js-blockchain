@@ -5,6 +5,7 @@ const Transaction = require('./transaction');
 const BlockChain = require('./chain');
 const ChainIter = require('./chain-iter');
 const POW = require('./pow');
+const Wallet = require('./wallet');
 
 const level = require('level');
 
@@ -39,6 +40,7 @@ const getBalance = (bc) => (address) => {
   let acc = 0;
   return bc.findUTXO(address).then((outs) => {
     outs.forEach((out) => {
+      console.log(out);
       acc += out.value;
     });
 
@@ -48,15 +50,17 @@ const getBalance = (bc) => (address) => {
   });
 }
 
-BlockChain.newBlockChain(martin).then((chain) => {
-  const getBalanceOnCurrChain = getBalance(chain);
+// BlockChain.newBlockChain(martin).then((chain) => {
+//   const getBalanceOnCurrChain = getBalance(chain);
 
-  send(martin, yoyo, 5, chain).then((tx) => {
-    chain.mineBlock([tx], miner).then(() => {
-      // chain.print();
-      getBalanceOnCurrChain(miner);
-      getBalanceOnCurrChain(martin);
-      getBalanceOnCurrChain(yoyo);
-    });
-  });
-});
+//   send(martin, yoyo, 0, chain).then((tx) => {
+//     chain.mineBlock([tx], miner).then(() => {
+//       // chain.print();
+//       getBalanceOnCurrChain(miner);
+//       getBalanceOnCurrChain(martin);
+//       getBalanceOnCurrChain(yoyo);
+//     });
+//   });
+// });
+const wallet = Wallet.newWallet();
+console.log(wallet.privateKey, wallet.privateKey.toString(), wallet.publicKey);

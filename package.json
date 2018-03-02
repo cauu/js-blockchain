@@ -20,8 +20,10 @@
     "big-integer": "^1.6.26",
     "bluebird": "^3.5.1",
     "connect-redis": "^3.3.3",
+    "elliptic": "^6.4.0",
     "level": "^2.1.2",
     "moment": "^2.20.1",
+    "ripemd160": "^2.0.1",
     "sha256": "^0.2.0"
   }
 }
