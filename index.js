@@ -63,4 +63,18 @@ const getBalance = (bc) => (address) => {
 //   });
 // });
 const wallet = Wallet.newWallet();
-console.log(wallet.privateKey, wallet.privateKey.toString(), wallet.publicKey);
+console.log('wallet', wallet);
+// console.log(
+//   wallet.privateKey,
+//   wallet.privateKey.toString(),
+//   wallet.publicKey,
+//   wallet.publicKey.getX().toString(),
+//   wallet.publicKey.getX().toString('hex'),
+//   wallet.publicKey.getX().toBuffer(),
+//   wallet.publicKey.getX().toArrayLike(Buffer),
+// );
+// let b = wallet.publicKey.getX().toBuffer();
+// let ab = wallet.publicKey.getX().toArrayLike(Buffer);
+// console.log(b.toString('hex'));
+// console.log(Buffer.isEncoding(ab));
+// console.log(wallet.publicKey.getX().toString() === wallet.publicKey.getX().toString('hex'))

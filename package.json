@@ -19,6 +19,7 @@
   "dependencies": {
     "big-integer": "^1.6.26",
     "bluebird": "^3.5.1",
+    "bs58": "^4.0.1",
     "connect-redis": "^3.3.3",
     "elliptic": "^6.4.0",
     "level": "^2.1.2",
