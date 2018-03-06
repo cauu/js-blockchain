@@ -116,6 +116,10 @@ class BlockChain {
     ;
   }
 
+  /**
+   * @desc
+   * 查询可用的output并不需要用户的签名
+   */
   findUnspentTransactions(address) {
     const unspentTXs = [];
     const spentTXOs = {};

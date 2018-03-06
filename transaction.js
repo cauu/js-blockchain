@@ -31,6 +31,8 @@ class Transaction {
 
   /**
    * @description
+   * 创建一个新的transaction时，
+   * 用户需要提供publickeyhash和signature
    */
   static createUTXOTransaction(from, to, amount, chain) {
     const inputs = [];

@@ -6,10 +6,12 @@ const Wallet = require('./wallet');
  * @property {string} scriptSig 
  **/
 class TxInput {
-  constructor({ txId, vout, scriptSig }) {
+  constructor({ txId, vout, signature, pubKey, scriptSig }) {
     this.txId = txId;
     this.vout = vout;
     this.scriptSig = scriptSig;
+    this.signature = signature;
+    this.pubKey = pubKey;
   }
 
   /**
@@ -21,8 +23,15 @@ class TxInput {
     return this.scriptSig === unlockingData;
   }
 
+  /**
+   * @desc
+   * 判断“我”所提供的publicKeyHash，
+   * 等于input对应的publicKeyHash
+   */
   usesKey(pubKeyHash) {
-    const lockingHash = Wallet.hashPubKey();
+    const lockingHash = Wallet.hashPubKey(this.pubKey);
+
+    return lockingHash === pubKeyHash;
   }
 }
 
