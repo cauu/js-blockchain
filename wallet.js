@@ -29,7 +29,10 @@ class Wallet {
   static newWallet() {
     const keyPair = generateKeyPairs();
     const pubKey = keyPair.getPublic();
-    return new Wallet(keyPair.getPrivate().toString('hex'), pubKey.getX().toString('hex') + pubKey.getY().toString('hex'));
+    return new Wallet(
+      keyPair.getPrivate().toString('hex'),
+      pubKey.getX().toString('hex') + pubKey.getY().toString('hex')
+    );
   }
 
   constructor(privateKey, publicKey) {

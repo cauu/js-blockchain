@@ -1,14 +1,31 @@
+const Base58 = require('bs58');
+
 class TxOutput {
-  constructor({ value, scriptPubKey }) {
+  constructor({ value, scriptPubKey, pubKeyHash }) {
     this.value = value;
     this.scriptPubKey = scriptPubKey;
+    this.pubKeyHash = pubKeyHash || null;
   }
 
   /**
    * @desc 如果用户可以解锁output中的数据，那么他就可以使用output中的value
    */
-  canBeUnlockWith(unlockingData) {
-    return this.scriptPubKey === unlockingData;
+  canBeUnlockWith(address) {
+    const fullHash = Base58.decode(address).toString('hex');
+
+    const pubKeyHash = fullHash.slice(2, fullHash.length - 4);
+
+    return this.isLockWith(pubKeyHash);
+  }
+
+  lock(address) {
+    const pubKeyHash = Base58.decode(address).toString('hex');
+
+    this.pubKeyHash = pubKeyHash.slice(2, pubKeyHash.length - 4);
+  }
+
+  isLockWith(pubKeyHash) {
+    return pubKeyHash === this.pubKeyHash;
   }
 }
 

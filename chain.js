@@ -92,7 +92,7 @@ class BlockChain {
       console.log('*****************************');
     };
 
-    bci.map(printCurrent);
+    bci.foreach(printCurrent);
   }
 
   /**
@@ -116,6 +116,44 @@ class BlockChain {
     ;
   }
 
+  findTransactionsById(ids) {
+    const transactions = {};
+    const bci = this.iterator();
+
+    return bci.foreach((block) => {
+      for(let i = 0; i < block.transactions.length; i++) {
+        for(let j = 0; j < ids.length; j++) {
+          if(block.transactions[i].id === ids[j]) {
+            transactions[ids[j]] = block.transactions[i];
+            return;
+          }
+        }
+      }
+    }).then(() => transactions);
+  }
+
+  /**
+   * @desc
+   * 找到所有的transactions并对他们进行签名
+   */
+  signTransaction(tx, privateKey) {
+    const prevIds = tx.vin.map((txin) => {
+      return txin.txId;
+    });
+
+    return this.findTransactionsById(prevIds);
+  }
+
+  verifyTransaction(tx) {
+    const prevIds = tx.vin.map((txin) => {
+      return txin.txId;
+    });
+
+    return this.findTransactionsById(prevIds).then((prevTxs) => {
+      return tx.verify(prevTxs);
+    });
+  }
+
   /**
    * @desc
    * 查询可用的output并不需要用户的签名
@@ -125,7 +163,7 @@ class BlockChain {
     const spentTXOs = {};
     const bci = this.iterator();
 
-    return bci.map((block) => {
+    return bci.foreach((block) => {
       for(let i = 0; i < block.transactions.length; i++) {
         const tx = block.transactions[i];
 

@@ -1,5 +1,9 @@
 const bigInt = require('big-integer');
 const sha256 = require('sha256');
+const Base58 = require('bs58');
+const EC = require('elliptic').ec;
+const ec = new EC('p256');
+const Signature = EC.Signature;
 
 const Transaction = require('./transaction');
 const BlockChain = require('./chain');
@@ -62,8 +66,26 @@ const getBalance = (bc) => (address) => {
 //     });
 //   });
 // });
+
 const wallet = Wallet.newWallet();
 console.log('wallet', wallet);
+console.log(Base58.decode(wallet.address).toString('hex'));
+const key = ec.keyFromPrivate(wallet.privateKey);
+const pubKeyLength = wallet.publicKey.length;
+const  originPbk = {
+  x: wallet.publicKey.slice(0, pubKeyLength / 2),
+  y: wallet.publicKey.slice(pubKeyLength / 2)
+};
+const pubKey = ec.keyFromPublic(originPbk);
+console.log(key, pubKey);
+const sign = key.sign([0,2,3]);
+const result = pubKey.verify([0,2,3], sign.toDER('hex'));
+console.log(sign.toDER('hex'), result);
+
+// console.log('result', sign, sign.toDER(), sign.toDER().toString('hex'));
+// const hexSign = sign.toDER().toString('hex');
+// console.log(Signature);
+// console.log(new Signature(hexSign.split(',')));
 // console.log(
 //   wallet.privateKey,
 //   wallet.privateKey.toString(),

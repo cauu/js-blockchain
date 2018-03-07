@@ -9,7 +9,7 @@ class ChainIterator {
     this.nextHash = null;
   }
 
-  map(cb) {
+  foreach(cb) {
     const that = this;
 
     return new Promise((resolve, reject) => {

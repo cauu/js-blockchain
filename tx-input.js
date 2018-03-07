@@ -1,9 +1,13 @@
+const Base58 = require('bs58');
+
 const Wallet = require('./wallet');
 
 /**
  * @property {string} txId 对应前一个output所在的transaction的id
  * @property {int} vout 对应output的index
  * @property {string} scriptSig 
+ * @property {string} pubKey 用户的publickey
+ * @property {string} signature 签名，用来验证该input是有效的input
  **/
 class TxInput {
   constructor({ txId, vout, signature, pubKey, scriptSig }) {
@@ -19,8 +23,12 @@ class TxInput {
    * “我”需要证明“我”有权限使用txId中相应vout的资金,
    * “我”需要提供“我”的publicKeyHash和签名去解锁vout中的资金
    */
-  canUnlockOutputWith(unlockingData) {
-    return this.scriptSig === unlockingData;
+  canUnlockOutputWith(address) {
+    const fullHash = Base58.decode(address).toString('hex');
+
+    const pubKeyHash = fullHash.slice(2, fullHash.length - 4);
+
+    return this.usesKey(pubKeyHash);
   }
 
   /**
