@@ -103,15 +103,27 @@ class BlockChain {
   mineBlock(txs = [], address) {
     return this.getLastHash()
       .then((hash) => {
-        const coinBaseTx = Transaction.createCoinbaseTransaction(address);
+        const verifyPromise = Promise.all(txs.map((tx) => this.verifyTransaction(tx))).then((validations) => {
+          const verifiedTxs = [];
 
-        const newBlock = Block.newBlock([coinBaseTx, ...txs], hash);
+          validations.forEach((v, index) => {
+            if(!!v[index]) {
+              verifiedTxs.push(txs[index]);
+            } else {
+              console.log(txs[index], ' is invalid.');
+            }
+          });
 
-        return this.db.put(newBlock.hash, newBlock.serialize())
-          .then(() => {
-            return this.db.put('l', newBlock.hash).then(() => Promise.resolve());
-          })
-        ;
+          const coinBaseTx = Transaction.createCoinbaseTransaction(address);
+
+          const newBlock = Block.newBlock([coinBaseTx, ...verifiedTxs], hash);
+
+          return this.db.put(newBlock.hash, newBlock.serialize())
+            .then(() => {
+              return this.db.put('l', newBlock.hash).then(() => Promise.resolve());
+            })
+          ;
+        });
       })
     ;
   }

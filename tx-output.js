@@ -22,6 +22,8 @@ class TxOutput {
     const pubKeyHash = Base58.decode(address).toString('hex');
 
     this.pubKeyHash = pubKeyHash.slice(2, pubKeyHash.length - 4);
+
+    return this;
   }
 
   isLockWith(pubKeyHash) {

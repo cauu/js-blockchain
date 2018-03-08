@@ -6,6 +6,7 @@ const ec = new EC('p256');
 const Wallet = require('./wallet');
 const TxInput = require('./tx-input');
 const TxOutput = require('./tx-output');
+const Wallets = require('./wallets');
 
 /**
  * @const {int} subsidy 挖矿成功后默认的奖励
@@ -26,8 +27,8 @@ class Transaction {
     }
 
     const vin = [new TxInput({ txId: '', vout: -1, pubKey: null, signature: null })];
-    const vout = [new TxOutput({ value: subsidy })];
-    vout.lock(to);
+    const vout = [new TxOutput({ value: subsidy }).lock(to)];
+    // vout.lock(to);
     const tx = new Transaction('', vin, vout, createdAt);
     tx.id = tx.hash();
 
@@ -47,6 +48,7 @@ class Transaction {
   static createUTXOTransaction(from, to, amount, chain) {
     const inputs = [];
     const outputs = [];
+    const wallets = new Wallets();
 
     return chain.findSpendableOutputs(from, amount).then(({ acc, validTXs }) => {
       if(acc < amount) {
@@ -57,19 +59,25 @@ class Transaction {
         const outs = validTXs[txId];
 
         outs.forEach((outIdx) => {
-          const input = new TxInput({ txId, vout: outIdx, scriptSig: from });
+          const input = new TxInput({ txId, vout: outIdx, pubKey: wallets.getWallet(from).publicKey });
           inputs.push(input);
         });
       });
 
-      outputs.push(new TxOutput({ value: amount, scriptPubKey: to }));
+      const payment = new TxOutput({ value: amount });
+      payment.lock(to);
+      outputs.push(payment);
+      console.log('tx inputs', inputs, outputs);
 
       if(acc > amount) {
-        outputs.push(new TxOutput({ value: acc - amount, scriptPubKey: from }));
+        const change = new TxOutput({ value: acc - amount })
+        change.lock(from);
+        outputs.push(change);
       }
 
       const tx = new Transaction('', inputs, outputs);
       tx.id = tx.hash();
+      tx.sign(wallets.privateKey, validTXs);
 
       return tx;
     });

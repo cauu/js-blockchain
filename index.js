@@ -10,6 +10,7 @@ const BlockChain = require('./chain');
 const ChainIter = require('./chain-iter');
 const POW = require('./pow');
 const Wallet = require('./wallet');
+const Wallets = require('./wallets');
 
 const level = require('level');
 
@@ -54,33 +55,42 @@ const getBalance = (bc) => (address) => {
   });
 }
 
-// BlockChain.newBlockChain(martin).then((chain) => {
-//   const getBalanceOnCurrChain = getBalance(chain);
+function createWallet() {
+  return new Wallets().newWallet();
+}
 
-//   send(martin, yoyo, 0, chain).then((tx) => {
-//     chain.mineBlock([tx], miner).then(() => {
-//       // chain.print();
-//       getBalanceOnCurrChain(miner);
-//       getBalanceOnCurrChain(martin);
-//       getBalanceOnCurrChain(yoyo);
-//     });
-//   });
-// });
+const myWallet = createWallet();
+const targetWallet = createWallet();
+const minerWallet = createWallet();
 
-const wallet = Wallet.newWallet();
-console.log('wallet', wallet);
-console.log(Base58.decode(wallet.address).toString('hex'));
-const key = ec.keyFromPrivate(wallet.privateKey);
-const pubKeyLength = wallet.publicKey.length;
-const  originPbk = {
-  x: wallet.publicKey.slice(0, pubKeyLength / 2),
-  y: wallet.publicKey.slice(pubKeyLength / 2)
-};
-const pubKey = ec.keyFromPublic(originPbk);
-console.log(key, pubKey);
-const sign = key.sign([0,2,3]);
-const result = pubKey.verify([0,2,3], sign.toDER('hex'));
-console.log(sign.toDER('hex'), result);
+BlockChain.newBlockChain(myWallet.address).then((chain) => {
+  const getBalanceOnCurrChain = getBalance(chain);
+
+  send(myWallet.address, targetWallet.address, 0, chain).then((tx) => {
+    chain.mineBlock([tx], minerWallet.address).then(() => {
+    //   // chain.print();
+      getBalanceOnCurrChain(minerWallet.address);
+      getBalanceOnCurrChain(myWallet.address);
+      getBalanceOnCurrChain(targetWallet.address);
+    });
+  });
+});
+
+// const wallet = Wallet.newWallet();
+// console.log('wallet', wallet);
+// console.log(Base58.decode(wallet.address).toString('hex'));
+// const key = ec.keyFromPrivate(wallet.privateKey);
+// const pubKeyLength = wallet.publicKey.length;
+// const  originPbk = {
+//   x: wallet.publicKey.slice(0, pubKeyLength / 2),
+//   y: wallet.publicKey.slice(pubKeyLength / 2)
+// };
+// const pubKey = ec.keyFromPublic(originPbk);
+// console.log(key, pubKey);
+// const sign = key.sign([0,2,3]);
+// const result = pubKey.verify([0,2,3], sign.toDER('hex'));
+// console.log(sign.toDER('hex'), result);
+
 
 // console.log('result', sign, sign.toDER(), sign.toDER().toString('hex'));
 // const hexSign = sign.toDER().toString('hex');
