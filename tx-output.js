@@ -1,9 +1,8 @@
 const Base58 = require('bs58');
 
 class TxOutput {
-  constructor({ value, scriptPubKey, pubKeyHash }) {
+  constructor({ value, pubKeyHash }) {
     this.value = value;
-    this.scriptPubKey = scriptPubKey;
     this.pubKeyHash = pubKeyHash || null;
   }
 

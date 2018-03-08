@@ -67,7 +67,6 @@ class Transaction {
       const payment = new TxOutput({ value: amount });
       payment.lock(to);
       outputs.push(payment);
-      console.log('tx inputs', inputs, outputs);
 
       if(acc > amount) {
         const change = new TxOutput({ value: acc - amount })
@@ -77,9 +76,13 @@ class Transaction {
 
       const tx = new Transaction('', inputs, outputs);
       tx.id = tx.hash();
-      tx.sign(wallets.privateKey, validTXs);
+      return chain.findTransactionsById(Object.keys(validTXs)).then((prevTXs) => {
+        tx.sign(wallets.getWallet(from).privateKey, prevTXs);
 
-      return tx;
+        return tx;
+      });
+      // tx.sign(wallets.privateKey, validTXs);
+      // return tx;
     });
   }
 
@@ -139,7 +142,7 @@ class Transaction {
       txCopy.id = txCopy.hash();
       txCopy.vin[index].pubKey = null;
 
-      const pubKeyLength = txin.pubKey;
+      const pubKeyLength = txin.pubKey.length;
       const pubKey = {
         x: txin.pubKey.slice(0, pubKeyLength / 2),
         y: txin.pubKey.slice(pubKeyLength / 2)

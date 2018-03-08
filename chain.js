@@ -103,14 +103,18 @@ class BlockChain {
   mineBlock(txs = [], address) {
     return this.getLastHash()
       .then((hash) => {
+        /**
+         * @desc
+         * 首先校验每一笔交易的合法性，不合法的交易不会被打包到区块中去
+         */
         const verifyPromise = Promise.all(txs.map((tx) => this.verifyTransaction(tx))).then((validations) => {
           const verifiedTxs = [];
 
           validations.forEach((v, index) => {
-            if(!!v[index]) {
+            if(!!v) {
               verifiedTxs.push(txs[index]);
             } else {
-              console.log(txs[index], ' is invalid.');
+              console.log(txs[index].id, ' is invalid.');
             }
           });
 
@@ -128,7 +132,7 @@ class BlockChain {
     ;
   }
 
-  findTransactionsById(ids) {
+  findTransactionsById(ids = []) {
     const transactions = {};
     const bci = this.iterator();
 

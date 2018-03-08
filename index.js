@@ -45,7 +45,6 @@ const getBalance = (bc) => (address) => {
   let acc = 0;
   return bc.findUTXO(address).then((outs) => {
     outs.forEach((out) => {
-      console.log(out);
       acc += out.value;
     });
 
@@ -59,54 +58,26 @@ function createWallet() {
   return new Wallets().newWallet();
 }
 
-const myWallet = createWallet();
-const targetWallet = createWallet();
-const minerWallet = createWallet();
+/**
+ * @description
+ * 首先创建钱包，才能得到这些地址
+ */
+const address1 = '1WbB7DGHufFWjfv3UTpnDHW2eHNw1je';
+const address2 = '1yS1Cmg38cg3tPQwJJcdnhhpBXtEykh';
+const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 
-BlockChain.newBlockChain(myWallet.address).then((chain) => {
+// const myWallet = createWallet();
+// const targetWallet = createWallet();
+// const minerWallet = createWallet();
+
+BlockChain.newBlockChain(address1).then((chain) => {
   const getBalanceOnCurrChain = getBalance(chain);
 
-  send(myWallet.address, targetWallet.address, 0, chain).then((tx) => {
-    chain.mineBlock([tx], minerWallet.address).then(() => {
-    //   // chain.print();
-      getBalanceOnCurrChain(minerWallet.address);
-      getBalanceOnCurrChain(myWallet.address);
-      getBalanceOnCurrChain(targetWallet.address);
+  send(address2, address1, 10, chain).then((tx) => {
+    chain.mineBlock([tx], address3).then(() => {
+      getBalanceOnCurrChain(address1);
+      getBalanceOnCurrChain(address2);
+      getBalanceOnCurrChain(address3);
     });
   });
 });
-
-// const wallet = Wallet.newWallet();
-// console.log('wallet', wallet);
-// console.log(Base58.decode(wallet.address).toString('hex'));
-// const key = ec.keyFromPrivate(wallet.privateKey);
-// const pubKeyLength = wallet.publicKey.length;
-// const  originPbk = {
-//   x: wallet.publicKey.slice(0, pubKeyLength / 2),
-//   y: wallet.publicKey.slice(pubKeyLength / 2)
-// };
-// const pubKey = ec.keyFromPublic(originPbk);
-// console.log(key, pubKey);
-// const sign = key.sign([0,2,3]);
-// const result = pubKey.verify([0,2,3], sign.toDER('hex'));
-// console.log(sign.toDER('hex'), result);
-
-
-// console.log('result', sign, sign.toDER(), sign.toDER().toString('hex'));
-// const hexSign = sign.toDER().toString('hex');
-// console.log(Signature);
-// console.log(new Signature(hexSign.split(',')));
-// console.log(
-//   wallet.privateKey,
-//   wallet.privateKey.toString(),
-//   wallet.publicKey,
-//   wallet.publicKey.getX().toString(),
-//   wallet.publicKey.getX().toString('hex'),
-//   wallet.publicKey.getX().toBuffer(),
-//   wallet.publicKey.getX().toArrayLike(Buffer),
-// );
-// let b = wallet.publicKey.getX().toBuffer();
-// let ab = wallet.publicKey.getX().toArrayLike(Buffer);
-// console.log(b.toString('hex'));
-// console.log(Buffer.isEncoding(ab));
-// console.log(wallet.publicKey.getX().toString() === wallet.publicKey.getX().toString('hex'))
