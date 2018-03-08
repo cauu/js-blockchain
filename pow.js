@@ -6,7 +6,7 @@ const sha256 = require('sha256');
  * 其他的共识算法发生作用的时间是类似的(pos, dpos)
  * 比如ae采用pos+pow算法来实现共识
  * 
- * pow算法的原理就是用撞库的方式不断寻找一个小于给定target的过程
+ * 比特币用到的pow算法的原理就是用撞库的方式不断寻找一个小于给定target的过程
  */
 const targetBits = 8;
 

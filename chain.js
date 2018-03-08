@@ -132,6 +132,11 @@ class BlockChain {
     ;
   }
 
+  /**
+   * @todo
+   * 该函数需要遍历所有的transactions
+   * 效率也很低
+   */
   findTransactionsById(ids = []) {
     const transactions = {};
     const bci = this.iterator();
@@ -173,6 +178,9 @@ class BlockChain {
   /**
    * @desc
    * 查询可用的output并不需要用户的签名
+   * @todo
+   * 此处需要遍历所有的blocks和transactions
+   * 随着区块长度的增加，效率变得越来越低
    */
   findUnspentTransactions(address) {
     const unspentTXs = [];

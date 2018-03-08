@@ -16,25 +16,6 @@ const level = require('level');
 
 const DB = 'chainDB';
 
-// const chain = BlockChain.newBlockChain();
-// process.stdout.write('\n');
-// chain.addBlock('My first transaction!');
-// chain.addBlock('My second transaction!');
-// process.stdout.write('\n');
-// chain.blocks.map((block, index) => {
-//   const {prevBlockHash, data, hash, timeStamp} = block;
-//   console.log(`Block${index}`);
-//   console.log(`PrevHash: ${prevBlockHash || '无'}`);
-//   console.log(`data: ${data}`);
-//   console.log(`hash: ${hash}`);
-//   console.log(`createdAt: ${moment(timeStamp).format('YYYY-MM-DD hh:mm:ss')}`);
-//   console.log(`POW: ${POW.newProofOfWork(block).validate()}`);
-//   console.log('---------------------------------');
-// });
-const martin = 'martin';
-const yoyo = 'yoyo';
-const miner = 'miner';
-
 const transactionPool = [];
 
 function send(from, to, amount, bc) {
@@ -73,7 +54,7 @@ const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 BlockChain.newBlockChain(address1).then((chain) => {
   const getBalanceOnCurrChain = getBalance(chain);
 
-  send(address2, address1, 10, chain).then((tx) => {
+  send(address3, address2, 10, chain).then((tx) => {
     chain.mineBlock([tx], address3).then(() => {
       getBalanceOnCurrChain(address1);
       getBalanceOnCurrChain(address2);
