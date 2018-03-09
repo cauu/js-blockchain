@@ -11,6 +11,7 @@ const ChainIter = require('./chain-iter');
 const POW = require('./pow');
 const Wallet = require('./wallet');
 const Wallets = require('./wallets');
+const MerkleTree = require('./merkle-tree');
 
 const level = require('level');
 
@@ -47,14 +48,14 @@ const address1 = '1WbB7DGHufFWjfv3UTpnDHW2eHNw1je';
 const address2 = '1yS1Cmg38cg3tPQwJJcdnhhpBXtEykh';
 const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 
-// const myWallet = createWallet();
-// const targetWallet = createWallet();
-// const minerWallet = createWallet();
+const myWallet = createWallet();
+const targetWallet = createWallet();
+const minerWallet = createWallet();
 
 BlockChain.newBlockChain(address1).then((chain) => {
   const getBalanceOnCurrChain = getBalance(chain);
 
-  send(address3, address2, 10, chain).then((tx) => {
+  send(address3, address2, 5, chain).then((tx) => {
     chain.mineBlock([tx], address3).then(() => {
       getBalanceOnCurrChain(address1);
       getBalanceOnCurrChain(address2);
