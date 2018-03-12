@@ -12,6 +12,7 @@ const POW = require('./pow');
 const Wallet = require('./wallet');
 const Wallets = require('./wallets');
 const MerkleTree = require('./merkle-tree');
+const UTXO = require('./utxo');
 
 const level = require('level');
 
@@ -63,3 +64,15 @@ BlockChain.newBlockChain(address1).then((chain) => {
     });
   });
 });
+
+// BlockChain.newBlockChain(address1).then((chain) => {
+//   const utxo = new UTXO(chain);
+//   utxo.reIndex();
+//   utxo.findSpendableOuputs()
+//     .then(() => {
+//     })
+//     .catch((e) => {
+//       console.log(e);
+//     })
+//   ;
+// });

@@ -4,7 +4,7 @@ const Block = require('./block');
 const ChainIter = require('./chain-iter');
 const Transaction = require('./transaction');
 
-const DB = 'chainDB';
+const { DB_PATH, DB_BUKETS } = require('./config');
 
 const testAddress = 'martin';
 
@@ -24,7 +24,7 @@ class BlockChain {
    * @desc
    */
   static newBlockChain(address) {
-    const db = level(DB);
+    const db = level(DB_PATH);
     
     return db.get('l')
       .then(() => {
@@ -124,7 +124,9 @@ class BlockChain {
 
           return this.db.put(newBlock.hash, newBlock.serialize())
             .then(() => {
-              return this.db.put('l', newBlock.hash).then(() => Promise.resolve());
+              return this.db.put('l', newBlock.hash)
+                .then(() => Promise.resolve())
+              ;
             })
           ;
         });
@@ -222,6 +224,67 @@ class BlockChain {
       }
     }).then(() => {
       return unspentTXs;
+    });
+  }
+
+  findUnspentTransactionsNew() {
+    const unspentTXs = [];
+    const spentTXOs = {};
+    const bci = this.iterator();
+
+    return bci.foreach((block) => {
+      for(let i = 0; i < block.transactions.length; i++) {
+        const tx = block.transactions[i];
+
+        /**
+         * @desc 找到所有未被包含到input中的output
+         */
+        tx.vout.forEach((out, idx) => {
+          if(!!spentTXOs[tx.id]) {
+            for(let j = 0; j < spentTXOs[tx.id].length; j++) {
+              if(spentTXOs[tx.id][j] === idx) {
+                return;
+              }
+            }
+          }
+
+          // if(out.canBeUnlockWith(address)) {
+          unspentTXs.push(tx);
+          // }
+        });
+
+        if(!tx.isCoinbase()) {
+          tx.vin.forEach((tin) => {
+            // if(tin.canUnlockOutputWith(address)) {
+            if(!spentTXOs[tin.txId]) {
+              spentTXOs[tin.txId] = [];
+            }
+
+            spentTXOs[tin.txId].push(tin.vout);
+            // }
+          });
+        }
+      }
+    }).then(() => {
+      return unspentTXs;
+    });
+  }
+
+  findUTXONew() {
+    const UTXOs = {};
+
+    return this.findUnspentTransactions().then((utxs) => {
+      utxs.forEach((utx) => {
+        utx.vout.forEach((out) => {
+          if(!UTXOs[utx.id]) {
+            UTXOs[utx.id] = [];
+          }
+
+          UTXOs[utx.id].push(out);
+        });
+      });
+
+      return Promise.resolve(UTXOs);
     });
   }
 
