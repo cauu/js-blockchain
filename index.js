@@ -4,7 +4,6 @@ const Base58 = require('bs58');
 const EC = require('elliptic').ec;
 const ec = new EC('p256');
 const Signature = EC.Signature;
-const lmdb = require('node-lmdb');
 
 const Transaction = require('./transaction');
 const BlockChain = require('./chain');
@@ -14,6 +13,7 @@ const Wallet = require('./wallet');
 const Wallets = require('./wallets');
 const MerkleTree = require('./merkle-tree');
 const UTXO = require('./utxo');
+const DBEnv = require('./db-env');
 
 const level = require('level');
 
@@ -78,18 +78,7 @@ const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 //   ;
 // });
 
-const env = new lmdb.Env();
-
-env.open({
-  path: __dirname  + '/chain',
-  mapSize: 2 * 1024 * 1024,
-  maxDbs: 3
-});
-
-const dbi = env.openDbi({
-  name: 'fullNodes',
-  create: true
-});
+const env = new DBEnv();
 
 const txn = env.beginTxn();
 const value = txn.getString(dbi, 1);
