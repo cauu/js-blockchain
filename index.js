@@ -4,6 +4,7 @@ const Base58 = require('bs58');
 const EC = require('elliptic').ec;
 const ec = new EC('p256');
 const Signature = EC.Signature;
+const lmdb = require('node-lmdb');
 
 const Transaction = require('./transaction');
 const BlockChain = require('./chain');
@@ -49,21 +50,21 @@ const address1 = '1WbB7DGHufFWjfv3UTpnDHW2eHNw1je';
 const address2 = '1yS1Cmg38cg3tPQwJJcdnhhpBXtEykh';
 const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 
-const myWallet = createWallet();
-const targetWallet = createWallet();
-const minerWallet = createWallet();
+// const myWallet = createWallet();
+// const targetWallet = createWallet();
+// const minerWallet = createWallet();
 
-BlockChain.newBlockChain(address1).then((chain) => {
-  const getBalanceOnCurrChain = getBalance(chain);
+// BlockChain.newBlockChain(address1).then((chain) => {
+//   const getBalanceOnCurrChain = getBalance(chain);
 
-  send(address3, address2, 5, chain).then((tx) => {
-    chain.mineBlock([tx], address3).then(() => {
-      getBalanceOnCurrChain(address1);
-      getBalanceOnCurrChain(address2);
-      getBalanceOnCurrChain(address3);
-    });
-  });
-});
+//   send(address3, address2, 5, chain).then((tx) => {
+//     chain.mineBlock([tx], address3).then(() => {
+//       getBalanceOnCurrChain(address1);
+//       getBalanceOnCurrChain(address2);
+//       getBalanceOnCurrChain(address3);
+//     });
+//   });
+// });
 
 // BlockChain.newBlockChain(address1).then((chain) => {
 //   const utxo = new UTXO(chain);
@@ -76,3 +77,32 @@ BlockChain.newBlockChain(address1).then((chain) => {
 //     })
 //   ;
 // });
+
+const env = new lmdb.Env();
+
+env.open({
+  path: __dirname  + '/chain',
+  mapSize: 2 * 1024 * 1024,
+  maxDbs: 3
+});
+
+const dbi = env.openDbi({
+  name: 'fullNodes',
+  create: true
+});
+
+const txn = env.beginTxn();
+const value = txn.getString(dbi, 1);
+if(value === null) {
+  txn.putString(dbi, 1, 'Hello world!');
+} else {
+  txn.del(dbi, 1);
+}
+
+txn.putString(dbi, 'fuck', 'Yes, its this simple2!');
+
+var result = txn.getString(dbi, 'fuck');
+
+console.log('result', result);
+
+// env.close();

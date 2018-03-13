@@ -5,7 +5,7 @@
 module.exports = {
   DB_PATH: 'chainDB',
 
-  DB_BUKETS: {
+  DB_INSTANCE: {
     CHAIN_STATS: 'chain',
     UTXO_STATS: 'utxos'
   }

@@ -1,4 +1,5 @@
 const level = require('level');
+const lmdb = require('node-lmdb');
 
 const Block = require('./block');
 const ChainIter = require('./chain-iter');
