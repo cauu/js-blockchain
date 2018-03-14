@@ -5,6 +5,7 @@ const EC = require('elliptic').ec;
 const ec = new EC('p256');
 const Signature = EC.Signature;
 
+const Chain = require('./chain');
 const Transaction = require('./transaction');
 const BlockChain = require('./chain');
 const ChainIter = require('./chain-iter');
@@ -78,20 +79,7 @@ const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 //   ;
 // });
 
-const env = new DBEnv();
+const chain = Chain.newBlockChain(address1);
+console.log(chain.getLastHash());
+console.log(chain.getLastHash());
 
-const txn = env.beginTxn();
-const value = txn.getString(dbi, 1);
-if(value === null) {
-  txn.putString(dbi, 1, 'Hello world!');
-} else {
-  txn.del(dbi, 1);
-}
-
-txn.putString(dbi, 'fuck', 'Yes, its this simple2!');
-
-var result = txn.getString(dbi, 'fuck');
-
-console.log('result', result);
-
-// env.close();

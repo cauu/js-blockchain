@@ -4,6 +4,7 @@ const lmdb = require('node-lmdb');
 const Block = require('./block');
 const ChainIter = require('./chain-iter');
 const Transaction = require('./transaction');
+const DBEnv = require('./db-env');
 
 const { DB_PATH, DB_BUKETS } = require('./config');
 
@@ -25,25 +26,41 @@ class BlockChain {
    * @desc
    */
   static newBlockChain(address) {
-    const db = level(DB_PATH);
-    
-    return db.get('l')
-      .then(() => {
-        return Promise.resolve(new BlockChain(db));
-      })
-      .catch((e) => {
-        const genesis = BlockChain.newGenesisBlock(address);
+    // const db = level(DB_PATH);
+    const db = new DBEnv();
 
-        return db.put('l', genesis.hash)
-          .then(() => {
-            return db.put(genesis.hash, genesis.serialize());
-          })
-          .then(() => {
-            return Promise.resolve(new BlockChain(db));
-          })
-        ;
-      })
-    ;
+    const chainDbOp = db.exec('chain');
+
+    const lastHash = chainDbOp((dbi, txn) => txn.getString(dbi, 'l'));
+
+    if(!lastHash) {
+      const genesis = BlockChain.newGenesisBlock(address);
+
+      chainDbOp((dbi, txn) => txn.putString(dbi, 'l', genesis.hash));
+      chainDbOp((dbi, txn) => txn.putString(dbi, genesis.hash, genesis.serialize()));
+    }
+
+    // db.close();
+
+    return new BlockChain(db);
+
+    // return db.get('l')
+    //   .then(() => {
+    //     return Promise.resolve(new BlockChain(db));
+    //   })
+    //   .catch((e) => {
+    //     const genesis = BlockChain.newGenesisBlock(address);
+
+    //     return db.put('l', genesis.hash)
+    //       .then(() => {
+    //         return db.put(genesis.hash, genesis.serialize());
+    //       })
+    //       .then(() => {
+    //         return Promise.resolve(new BlockChain(db));
+    //       })
+    //     ;
+    //   })
+    // ;
   }
 
   /**
@@ -57,25 +74,23 @@ class BlockChain {
   }
 
   getBlock(hash) {
-    return this.db.get(hash)
-      .then((block) => {
-        return Promise.resolve(Block.deserializeBlock(block));
-      })
-      .catch((e) => {
-        return Promise.reject(e);
-      })
-    ;
+    const chainDbOp = this.db.exec('chain');
+
+    const blockStr = chainDbOp((dbi, txn) => txn.getString(dbi, hash));
+
+    this.db.close();
+
+    return Block.deserializeBlock(blockStr);
   }
 
   getLastHash() {
-    return this.db.get('l')
-      .then((lastHash) => {
-        return Promise.resolve(lastHash);
-      })
-      .catch((e) => {
-        return e;
-      })
-    ;
+    const chainDbOp = this.db.exec('chain');
+
+    const lastHash = chainDbOp((dbi, txn) => txn.getString(dbi, 'l'));
+
+    this.db.close();
+
+    return lastHash;
   }
 
   iterator() {
