@@ -40,27 +40,9 @@ class BlockChain {
       chainDbOp((dbi, txn) => txn.putString(dbi, genesis.hash, genesis.serialize()));
     }
 
-    // db.close();
+    db.close();
 
     return new BlockChain(db);
-
-    // return db.get('l')
-    //   .then(() => {
-    //     return Promise.resolve(new BlockChain(db));
-    //   })
-    //   .catch((e) => {
-    //     const genesis = BlockChain.newGenesisBlock(address);
-
-    //     return db.put('l', genesis.hash)
-    //       .then(() => {
-    //         return db.put(genesis.hash, genesis.serialize());
-    //       })
-    //       .then(() => {
-    //         return Promise.resolve(new BlockChain(db));
-    //       })
-    //     ;
-    //   })
-    // ;
   }
 
   /**
@@ -117,37 +99,35 @@ class BlockChain {
    * @param {string} address 矿工的地址
    */
   mineBlock(txs = [], address) {
-    return this.getLastHash()
-      .then((hash) => {
-        /**
-         * @desc
-         * 首先校验每一笔交易的合法性，不合法的交易不会被打包到区块中去
-         */
-        const verifyPromise = Promise.all(txs.map((tx) => this.verifyTransaction(tx))).then((validations) => {
-          const verifiedTxs = [];
+    const hash = this.getLastHash();
 
-          validations.forEach((v, index) => {
-            if(!!v) {
-              verifiedTxs.push(txs[index]);
-            } else {
-              console.log(txs[index].id, ' is invalid.');
-            }
-          });
+    /**
+     * @desc
+     * 首先校验每一笔交易的合法性，不合法的交易不会被打包到区块中去
+     */
+    const verifyPromise = Promise.all(txs.map((tx) => this.verifyTransaction(tx))).then((validations) => {
+      const verifiedTxs = [];
 
-          const coinBaseTx = Transaction.createCoinbaseTransaction(address);
+      validations.forEach((v, index) => {
+        if(!!v) {
+          verifiedTxs.push(txs[index]);
+        } else {
+          console.log(txs[index].id, ' is invalid.');
+        }
+      });
 
-          const newBlock = Block.newBlock([coinBaseTx, ...verifiedTxs], hash);
+      const coinBaseTx = Transaction.createCoinbaseTransaction(address);
 
-          return this.db.put(newBlock.hash, newBlock.serialize())
-            .then(() => {
-              return this.db.put('l', newBlock.hash)
-                .then(() => Promise.resolve())
-              ;
-            })
+      const newBlock = Block.newBlock([coinBaseTx, ...verifiedTxs], hash);
+
+      return this.db.put(newBlock.hash, newBlock.serialize())
+        .then(() => {
+          return this.db.put('l', newBlock.hash)
+            .then(() => Promise.resolve())
           ;
-        });
-      })
-    ;
+        })
+      ;
+    });
   }
 
   /**
@@ -159,7 +139,7 @@ class BlockChain {
     const transactions = {};
     const bci = this.iterator();
 
-    return bci.foreach((block) => {
+    bci.foreach((block) => {
       for(let i = 0; i < block.transactions.length; i++) {
         for(let j = 0; j < ids.length; j++) {
           if(block.transactions[i].id === ids[j]) {
@@ -168,7 +148,9 @@ class BlockChain {
           }
         }
       }
-    }).then(() => transactions);
+    });
+
+    return transactions;
   }
 
   /**
@@ -188,9 +170,9 @@ class BlockChain {
       return txin.txId;
     });
 
-    return this.findTransactionsById(prevIds).then((prevTxs) => {
-      return tx.verify(prevTxs);
-    });
+    const prevTxs = this.findTransactionsById(prevIds);
+
+    return tx.verify(prevTxs);
   }
 
   /**
@@ -205,7 +187,7 @@ class BlockChain {
     const spentTXOs = {};
     const bci = this.iterator();
 
-    return bci.foreach((block) => {
+    bci.foreach((block) => {
       for(let i = 0; i < block.transactions.length; i++) {
         const tx = block.transactions[i];
 
@@ -238,9 +220,9 @@ class BlockChain {
           });
         }
       }
-    }).then(() => {
-      return unspentTXs;
     });
+
+    return unspentTXs;
   }
 
   findUnspentTransactionsNew() {
@@ -248,7 +230,7 @@ class BlockChain {
     const spentTXOs = {};
     const bci = this.iterator();
 
-    return bci.foreach((block) => {
+    bci.foreach((block) => {
       for(let i = 0; i < block.transactions.length; i++) {
         const tx = block.transactions[i];
 
@@ -281,15 +263,15 @@ class BlockChain {
           });
         }
       }
-    }).then(() => {
-      return unspentTXs;
     });
+
+    return unspentTXs;
   }
 
   findUTXONew() {
     const UTXOs = {};
 
-    return this.findUnspentTransactions().then((utxs) => {
+    this.findUnspentTransactionsNew().forEach((utxs) => {
       utxs.forEach((utx) => {
         utx.vout.forEach((out) => {
           if(!UTXOs[utx.id]) {
@@ -299,56 +281,55 @@ class BlockChain {
           UTXOs[utx.id].push(out);
         });
       });
-
-      return Promise.resolve(UTXOs);
     });
+
+    return UTXOs;
   }
 
-  findUTXO(address) {
-    const UTXOs = [];
+  // findUTXO(address) {
+  //   const UTXOs = [];
 
-    return this.findUnspentTransactions(address).then((utxs) => {
-      utxs.forEach((utx) => {
-        utx.vout.forEach((out) => {
-          if(out.canBeUnlockWith(address)) {
-            UTXOs.push(out);
-          }
-        });
-      });
+  //   return this.findUnspentTransactions(address).then((utxs) => {
+  //     utxs.forEach((utx) => {
+  //       utx.vout.forEach((out) => {
+  //         if(out.canBeUnlockWith(address)) {
+  //           UTXOs.push(out);
+  //         }
+  //       });
+  //     });
 
-      return Promise.resolve(UTXOs);
-    });
-  }
+  //     return Promise.resolve(UTXOs);
+  //   });
+  // }
 
   findSpendableOutputs(address, amount) {
     /**
      * @todo 找到address对应的用户所有可消耗的output
      */
-    return this.findUnspentTransactions(address).then((utxs) => {
-      let acc = 0;
-      let validTXs = {};
+    const utxs = this.findUnspentTransactions(address)
+    let acc = 0;
+    let validTXs = {};
 
-      for(let i = 0; i < utxs.length; i++) {
-        utxs[i].vout.forEach((out, outIdx) => {
-          if(out.canBeUnlockWith(address) && acc < amount) {
-            acc += out.value;
+    for(let i = 0; i < utxs.length; i++) {
+      utxs[i].vout.forEach((out, outIdx) => {
+        if(out.canBeUnlockWith(address) && acc < amount) {
+          acc += out.value;
 
-            if(!validTXs[utxs[i].id]) {
-              validTXs[utxs[i].id] = [];
-            }
-
-            validTXs[utxs[i].id].push(outIdx);
+          if(!validTXs[utxs[i].id]) {
+            validTXs[utxs[i].id] = [];
           }
-        });
 
-        if(acc > amount) break;
-      }
+          validTXs[utxs[i].id].push(outIdx);
+        }
+      });
 
-      return {
-        acc,
-        validTXs
-      };
-    });
+      if(acc > amount) break;
+    }
+
+    return {
+      acc,
+      validTXs
+    };
   }
 }
 

@@ -10,47 +10,24 @@ class ChainIterator {
   }
 
   foreach(cb) {
-    const that = this;
-
-    return new Promise((resolve, reject) => {
-      function nextCb(block) {
-        if(!block) {
-          resolve();
-          return;
-        }
-
-        cb(block);
-
-        that.next().then(nextCb);
-      };
-
-      that.next().then(nextCb);
-    });
+    while(this.next()) {
+      cb && cb();
+    }
   }
 
   next() {
     const iterToNext = (hash) => {
-      return this.chain
-        .getBlock(hash)
-        .then((block) => {
-          this.nextHash = block.prevBlockHash;
-
-          return Promise.resolve(block);
-        })
-        .catch((e) => {
-          return Promise.reject(e);
-        })
-      ;
+      const block = this.chain.getBlock();
+      this.nextHash = block.prevBlockHash;
+      return block;
     };
 
     if(this.nextHash === '') {
-      return Promise.resolve(null);
+      return null;
     }
 
     if(!this.nextHash && this.nextHash !== '') {
-      return this.chain.getLastHash()
-        .then(iterToNext)
-      ;
+      return iterToNext(this.chain.getLastHash());
     }
 
     return iterToNext(this.nextHash);
