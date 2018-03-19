@@ -68,7 +68,7 @@ class BlockChain {
   getLastHash() {
     const chainDbOp = this.db.exec('chain');
 
-    const lastHash = chainDbOp((dbi, txn) => txn.getString(dbi, 'l'));
+    const lastHash = chainDbOp((dbi, txn) => txn.getString(dbi, 'l', { keyIsString: true }));
 
     this.db.close();
 
@@ -123,9 +123,9 @@ class BlockChain {
 
     const newBlock = Block.newBlock([coinBaseTx, ...verifiedTxs], hash);
 
-    chainDbOp((dbi, txn) => txn.putString(newBlock.hash, newBlock.serialize()));
+    chainDbOp((dbi, txn) => txn.putString(dbi, newBlock.hash, newBlock.serialize()));
 
-    chainDbOp((dbi, txn) => txn.putString('l', newBlock.hash));
+    chainDbOp((dbi, txn) => txn.putString(dbi, 'l', newBlock.hash));
 
     return newBlock;
   }

@@ -30,7 +30,8 @@ class DBEnv {
 
     return this.env.openDbi({
       name,
-      create: true
+      create: true,
+      keyIsString: true
     });
   }
 
@@ -39,9 +40,10 @@ class DBEnv {
   }
 
   exec(dbiName) {
-    const dbi = this.getDbi(dbiName);
-
+    // const dbi = this.getDbi(dbiName);
     return (cb) => {
+      const dbi = this.getDbi(dbiName);
+
       const txn = this.env.beginTxn();
 
       const value = cb && cb(dbi, txn);

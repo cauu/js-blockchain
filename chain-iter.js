@@ -10,14 +10,16 @@ class ChainIterator {
   }
 
   foreach(cb) {
-    while(this.next()) {
-      cb && cb();
+    let block;
+
+    while(block = this.next()) {
+      cb && cb(block);
     }
   }
 
   next() {
     const iterToNext = (hash) => {
-      const block = this.chain.getBlock();
+      const block = this.chain.getBlock(hash);
       this.nextHash = block.prevBlockHash;
       return block;
     };

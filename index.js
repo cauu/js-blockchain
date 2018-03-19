@@ -78,7 +78,7 @@ const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 // });
 
 const chain = Chain.newBlockChain(address1);
-console.log(chain.getLastHash());
-console.log(chain.getLastHash());
-chain.mineBlock();
+chain.print();
+chain.mineBlock([], address1);
+console.log(chain);
 
