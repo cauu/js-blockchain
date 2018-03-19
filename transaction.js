@@ -50,40 +50,40 @@ class Transaction {
     const outputs = [];
     const wallets = new Wallets();
 
-    return chain.findSpendableOutputs(from, amount).then(({ acc, validTXs }) => {
-      if(acc < amount) {
-        throw new Error(`Error: not enough funds on ${from}.`);
-      }
+    const { acc, validTXs } = chain.findSpendableOutputs(from, amount);
 
-      Object.keys(validTXs).forEach((txId) => {
-        const outs = validTXs[txId];
+    // return chain.findSpendableOutputs(from, amount).then(({ acc, validTXs }) => {
+    if(acc < amount) {
+      throw new Error(`Error: not enough funds on ${from}.`);
+    }
 
-        outs.forEach((outIdx) => {
-          const input = new TxInput({ txId, vout: outIdx, pubKey: wallets.getWallet(from).publicKey });
-          inputs.push(input);
-        });
+    Object.keys(validTXs).forEach((txId) => {
+      const outs = validTXs[txId];
+
+      outs.forEach((outIdx) => {
+        const input = new TxInput({ txId, vout: outIdx, pubKey: wallets.getWallet(from).publicKey });
+        inputs.push(input);
       });
-
-      const payment = new TxOutput({ value: amount });
-      payment.lock(to);
-      outputs.push(payment);
-
-      if(acc > amount) {
-        const change = new TxOutput({ value: acc - amount })
-        change.lock(from);
-        outputs.push(change);
-      }
-
-      const tx = new Transaction('', inputs, outputs);
-      tx.id = tx.hash();
-      return chain.findTransactionsById(Object.keys(validTXs)).then((prevTXs) => {
-        tx.sign(wallets.getWallet(from).privateKey, prevTXs);
-
-        return tx;
-      });
-      // tx.sign(wallets.privateKey, validTXs);
-      // return tx;
     });
+
+    const payment = new TxOutput({ value: amount });
+    payment.lock(to);
+    outputs.push(payment);
+
+    if(acc > amount) {
+      const change = new TxOutput({ value: acc - amount })
+      change.lock(from);
+      outputs.push(change);
+    }
+
+    const tx = new Transaction('', inputs, outputs);
+    tx.id = tx.hash();
+
+    const prevTXs = chain.findTransactionsById(Object.keys(validTXs));
+
+    tx.sign(wallets.getWallet(from).privateKey, prevTXs);
+
+    return tx;
   }
 
   constructor(id, vin, vout, createdAt) {

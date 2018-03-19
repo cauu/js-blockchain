@@ -28,15 +28,13 @@ function send(from, to, amount, bc) {
 
 const getBalance = (bc) => (address) => {
   let acc = 0;
-  return bc.findUTXO(address).then((outs) => {
-    outs.forEach((out) => {
-      acc += out.value;
-    });
 
-    console.log(address + "'s balance is: " + acc);
-
-    return Promise.resolve(acc);
+  const outs = bc.findUTXO(address);
+  outs.forEach((out) => {
+    acc += out.value;
   });
+
+  return acc;
 }
 
 function createWallet() {
@@ -82,4 +80,5 @@ const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 const chain = Chain.newBlockChain(address1);
 console.log(chain.getLastHash());
 console.log(chain.getLastHash());
+chain.mineBlock();
 

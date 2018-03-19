@@ -101,33 +101,33 @@ class BlockChain {
   mineBlock(txs = [], address) {
     const hash = this.getLastHash();
 
+    const chainDbOp = this.db.exec('chain');
+
     /**
      * @desc
      * 首先校验每一笔交易的合法性，不合法的交易不会被打包到区块中去
      */
-    const verifyPromise = Promise.all(txs.map((tx) => this.verifyTransaction(tx))).then((validations) => {
-      const verifiedTxs = [];
+    const validations =  txs.map((tx) => this.verifyTransaction(tx));
 
-      validations.forEach((v, index) => {
-        if(!!v) {
-          verifiedTxs.push(txs[index]);
-        } else {
-          console.log(txs[index].id, ' is invalid.');
-        }
-      });
+    const verifiedTxs = [];
 
-      const coinBaseTx = Transaction.createCoinbaseTransaction(address);
-
-      const newBlock = Block.newBlock([coinBaseTx, ...verifiedTxs], hash);
-
-      return this.db.put(newBlock.hash, newBlock.serialize())
-        .then(() => {
-          return this.db.put('l', newBlock.hash)
-            .then(() => Promise.resolve())
-          ;
-        })
-      ;
+    validations.forEach((v, index) => {
+      if(!!v) {
+        verifiedTxs.push(txs[index]);
+      } else {
+        console.log(txs[index].id, ' is invalid.');
+      }
     });
+
+    const coinBaseTx = Transaction.createCoinbaseTransaction(address);
+
+    const newBlock = Block.newBlock([coinBaseTx, ...verifiedTxs], hash);
+
+    chainDbOp((dbi, txn) => txn.putString(newBlock.hash, newBlock.serialize()));
+
+    chainDbOp((dbi, txn) => txn.putString('l', newBlock.hash));
+
+    return newBlock;
   }
 
   /**
@@ -286,21 +286,21 @@ class BlockChain {
     return UTXOs;
   }
 
-  // findUTXO(address) {
-  //   const UTXOs = [];
+  findUTXO(address) {
+    const UTXOs = [];
 
-  //   return this.findUnspentTransactions(address).then((utxs) => {
-  //     utxs.forEach((utx) => {
-  //       utx.vout.forEach((out) => {
-  //         if(out.canBeUnlockWith(address)) {
-  //           UTXOs.push(out);
-  //         }
-  //       });
-  //     });
+    const utxs = this.findUnspentTransactions(address);
 
-  //     return Promise.resolve(UTXOs);
-  //   });
-  // }
+    utxs.forEach((utx) => {
+      utx.vout.forEach((out) => {
+        if(out.canBeUnlockWith(address)) {
+          UTXOs.push(out);
+        }
+      });
+    });
+
+    return UTXOs;
+  }
 
   findSpendableOutputs(address, amount) {
     /**
