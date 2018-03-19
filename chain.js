@@ -1,4 +1,3 @@
-const level = require('level');
 const lmdb = require('node-lmdb');
 
 const Block = require('./block');
@@ -26,7 +25,6 @@ class BlockChain {
    * @desc
    */
   static newBlockChain(address) {
-    // const db = level(DB_PATH);
     const db = new DBEnv();
 
     const chainDbOp = db.exec('chain');
