@@ -1,8 +1,6 @@
-const level = require('level');
-const rimraf = require('rimraf');
+const lmdb = require('node-lmdb');
 
-const { DB_PATH, DB_BUKETS } = require('./config');
-
+const DBEnv = require('./db-env');
 /**
  * @desc
  * 由于交易中，我们常常会需要去查找用户可用的transaction，
@@ -27,22 +25,32 @@ class UTXOSet {
    * 3. 保存到db
   **/
   reIndex() {
-    rimraf.sync(`./${DB}`);
     /**
      * @todo 
      * 1. 清空db
      * 2. 找到所有utxo
      * 3. 保存到db
      */
-    const utxoDB = level(DB);
+    const db = new DBEnv();
+    const utxoDbOp = db.exec('utxo');
 
-    return this.chain.findUTXONew((utxos) => {
-      return Promise.all(Object.keys(utxos).map((txId) => {
-        return utxoDB.put(txId, JSON.stringify(utxos[txId]));
-      })).then((result) => {
-        return utxoDB.close();
+    utxoDbOp((dbi, txn) => {
+      const cursor = new lmdb.Cursor(txn, dbi);
+
+      for(let found = cursor.goToFirst(); found !== null; found = cursor.goToNext()) {
+        cursor.del();
+      }
+    });
+
+    const utxos = this.chain.findUTXONew();
+
+    Object.keys(utxos).map((txId) => {
+      utxoDbOp((dbi, txn) => {
+        txn.putString(dbi, txId, JSON.stringify(utxos[txId]));
       });
     });
+
+    return utxos;
   }
 
   findSpendableOuputs(address, amount) {
@@ -52,22 +60,15 @@ class UTXOSet {
      */
     const unspentOutputs = {};
     let acc = 0;
-    const db = level(DB);
+    const db = new DBEnv();
+    const dbOp = db.exec('utxo');
 
-    return new Promise((resolve, reject) => {
-      db.createReadStream()
-        .on('data', ({ txId, rawOuts }) => {
-          return resove('txId', txId);
-        })
-        .on('error', (err) => {
-          return reject(err);
-        })
-        .on('close', () => {
-        })
-        .on('end', () => {
-          resolve('')
-        })
-      ;
+    dbOp((dbi, txn) => {
+      const cursor = new lmdb.Cursor(txn, dbi);
+      for(let found = cursor.goToFirst(); found != null; found = cursor.goToNext()) {
+        console.log(found);
+        console.log(cursor.getCurrentString(found));
+      }
     });
   }
 

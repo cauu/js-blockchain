@@ -1,13 +1,7 @@
-const lmdb = require('node-lmdb');
-
 const Block = require('./block');
 const ChainIter = require('./chain-iter');
 const Transaction = require('./transaction');
 const DBEnv = require('./db-env');
-
-const { DB_PATH, DB_BUKETS } = require('./config');
-
-const testAddress = 'martin';
 
 /**
  * @todo
@@ -269,15 +263,13 @@ class BlockChain {
   findUTXONew() {
     const UTXOs = {};
 
-    this.findUnspentTransactionsNew().forEach((utxs) => {
-      utxs.forEach((utx) => {
-        utx.vout.forEach((out) => {
-          if(!UTXOs[utx.id]) {
-            UTXOs[utx.id] = [];
-          }
+    this.findUnspentTransactionsNew().forEach((utx) => {
+      utx.vout.forEach((out) => {
+        if(!UTXOs[utx.id]) {
+          UTXOs[utx.id] = [];
+        }
 
-          UTXOs[utx.id].push(out);
-        });
+        UTXOs[utx.id].push(out);
       });
     });
 

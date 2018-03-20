@@ -40,7 +40,6 @@ class DBEnv {
   }
 
   exec(dbiName) {
-    // const dbi = this.getDbi(dbiName);
     return (cb) => {
       const dbi = this.getDbi(dbiName);
 
