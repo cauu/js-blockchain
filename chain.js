@@ -25,7 +25,7 @@ class BlockChain {
 
     const lastHash = chainDbOp((dbi, txn) => txn.getString(dbi, 'l'));
 
-    if(!lastHash) {
+    if (!lastHash) {
       const genesis = BlockChain.newGenesisBlock(address);
 
       chainDbOp((dbi, txn) => txn.putString(dbi, 'l', genesis.hash));
@@ -99,12 +99,12 @@ class BlockChain {
      * @desc
      * 首先校验每一笔交易的合法性，不合法的交易不会被打包到区块中去
      */
-    const validations =  txs.map((tx) => this.verifyTransaction(tx));
+    const validations = txs.map((tx) => this.verifyTransaction(tx));
 
     const verifiedTxs = [];
 
     validations.forEach((v, index) => {
-      if(!!v) {
+      if (!!v) {
         verifiedTxs.push(txs[index]);
       } else {
         console.log(txs[index].id, ' is invalid.');
@@ -132,9 +132,9 @@ class BlockChain {
     const bci = this.iterator();
 
     bci.foreach((block) => {
-      for(let i = 0; i < block.transactions.length; i++) {
-        for(let j = 0; j < ids.length; j++) {
-          if(block.transactions[i].id === ids[j]) {
+      for (let i = 0; i < block.transactions.length; i++) {
+        for (let j = 0; j < ids.length; j++) {
+          if (block.transactions[i].id === ids[j]) {
             transactions[ids[j]] = block.transactions[i];
             return;
           }
@@ -180,30 +180,30 @@ class BlockChain {
     const bci = this.iterator();
 
     bci.foreach((block) => {
-      for(let i = 0; i < block.transactions.length; i++) {
+      for (let i = 0; i < block.transactions.length; i++) {
         const tx = block.transactions[i];
 
         /**
          * @desc 找到所有未被包含到input中的output
          */
         tx.vout.forEach((out, idx) => {
-          if(!!spentTXOs[tx.id]) {
-            for(let j = 0; j < spentTXOs[tx.id].length; j++) {
-              if(spentTXOs[tx.id][j] === idx) {
+          if (!!spentTXOs[tx.id]) {
+            for (let j = 0; j < spentTXOs[tx.id].length; j++) {
+              if (spentTXOs[tx.id][j] === idx) {
                 return;
               }
             }
           }
 
-          if(out.canBeUnlockWith(address)) {
+          if (out.canBeUnlockWith(address)) {
             unspentTXs.push(tx);
           }
         });
 
-        if(!tx.isCoinbase()) {
+        if (!tx.isCoinbase()) {
           tx.vin.forEach((tin) => {
-            if(tin.canUnlockOutputWith(address)) {
-              if(!spentTXOs[tin.txId]) {
+            if (tin.canUnlockOutputWith(address)) {
+              if (!spentTXOs[tin.txId]) {
                 spentTXOs[tin.txId] = [];
               }
 
@@ -218,40 +218,44 @@ class BlockChain {
   }
 
   findUnspentTransactionsNew() {
-    const unspentTXs = [];
+    const unspentTXs = {};
     const spentTXOs = {};
     const bci = this.iterator();
 
     bci.foreach((block) => {
-      for(let i = 0; i < block.transactions.length; i++) {
+      for (let i = 0; i < block.transactions.length; i++) {
         const tx = block.transactions[i];
 
         /**
          * @desc 找到所有未被包含到input中的output
+         * @todo 此处存在问题： 
+         * 1. 之前的逻辑是只要spentTXOs[tx.id]中包含tx.vout[j]就将tx剔除
+         * 2. 现在应改为只要spentTXOs中存在不在spentTXOs[tx.id]中的tx，就将tx保存起来
          */
-        tx.vout.forEach((out, idx) => {
-          if(!!spentTXOs[tx.id]) {
-            for(let j = 0; j < spentTXOs[tx.id].length; j++) {
-              if(spentTXOs[tx.id][j] === idx) {
-                return;
+        if (!spentTXOs[tx.id]) {
+          if (!unspentTXs[tx.id]) {
+            unspentTXs[tx.id] = [];
+          }
+          unspentTXs[tx.id].concat(tx.vout);
+        } else {
+          for (let i = 0; i < tx.vout.length; i++) {
+            if (!spentTXOs[tx.id].find(idx => idx === i)) {
+              if (!unspentTXs[tx.id]) {
+                unspentTXs[tx.id] = [];
               }
+
+              unspentTXs[tx.id].push(tx.vout[i]);
             }
           }
+        }
 
-          // if(out.canBeUnlockWith(address)) {
-          unspentTXs.push(tx);
-          // }
-        });
-
-        if(!tx.isCoinbase()) {
+        if (!tx.isCoinbase()) {
           tx.vin.forEach((tin) => {
-            // if(tin.canUnlockOutputWith(address)) {
-            if(!spentTXOs[tin.txId]) {
+            if (!spentTXOs[tin.txId]) {
               spentTXOs[tin.txId] = [];
             }
 
             spentTXOs[tin.txId].push(tin.vout);
-            // }
           });
         }
       }
@@ -265,7 +269,7 @@ class BlockChain {
 
     this.findUnspentTransactionsNew().forEach((utx) => {
       utx.vout.forEach((out) => {
-        if(!UTXOs[utx.id]) {
+        if (!UTXOs[utx.id]) {
           UTXOs[utx.id] = [];
         }
 
@@ -283,7 +287,7 @@ class BlockChain {
 
     utxs.forEach((utx) => {
       utx.vout.forEach((out) => {
-        if(out.canBeUnlockWith(address)) {
+        if (out.canBeUnlockWith(address)) {
           UTXOs.push(out);
         }
       });
@@ -300,12 +304,12 @@ class BlockChain {
     let acc = 0;
     let validTXs = {};
 
-    for(let i = 0; i < utxs.length; i++) {
+    for (let i = 0; i < utxs.length; i++) {
       utxs[i].vout.forEach((out, outIdx) => {
-        if(out.canBeUnlockWith(address) && acc < amount) {
+        if (out.canBeUnlockWith(address) && acc < amount) {
           acc += out.value;
 
-          if(!validTXs[utxs[i].id]) {
+          if (!validTXs[utxs[i].id]) {
             validTXs[utxs[i].id] = [];
           }
 
@@ -313,7 +317,7 @@ class BlockChain {
         }
       });
 
-      if(acc > amount) break;
+      if (acc > amount) break;
     }
 
     return {

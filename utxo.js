@@ -66,8 +66,9 @@ class UTXOSet {
     dbOp((dbi, txn) => {
       const cursor = new lmdb.Cursor(txn, dbi);
       for(let found = cursor.goToFirst(); found != null; found = cursor.goToNext()) {
-        console.log(found);
-        console.log(cursor.getCurrentString(found));
+        const txId = found;
+        const vouts = JSON.parse(cursor.getCurrentString(found));
+        // console.log(vouts);
       }
     });
   }
