@@ -1,6 +1,7 @@
 const lmdb = require('node-lmdb');
 
 const DBEnv = require('./db-env');
+const TxOutput = require('./tx-output');
 /**
  * @desc
  * 由于交易中，我们常常会需要去查找用户可用的transaction，
@@ -38,7 +39,7 @@ class UTXOSet {
       const cursor = new lmdb.Cursor(txn, dbi);
 
       for(let found = cursor.goToFirst(); found !== null; found = cursor.goToNext()) {
-        cursor.del();
+        cursor.del && cursor.del();
       }
     });
 
@@ -60,6 +61,7 @@ class UTXOSet {
      */
     const unspentOutputs = {};
     let acc = 0;
+    let validTXs = {};
     const db = new DBEnv();
     const dbOp = db.exec('utxo');
 
@@ -68,29 +70,46 @@ class UTXOSet {
       for(let found = cursor.goToFirst(); found != null; found = cursor.goToNext()) {
         const txId = found;
         const vouts = JSON.parse(cursor.getCurrentString(found));
-        // console.log(vouts);
+        vouts.forEach((out, outIdx) => {
+          if(new TxOutput(out).canBeUnlockWith(address) && acc < amount) {
+            acc += out.value;
+
+            if(!validTXs[txId]) {
+              validTXs[txId] = [];
+            }
+
+            validTXs[txId].push(outIdx);
+          }
+        });
+
+        if(acc > amount) break;
       }
     });
+
+    return {
+      acc,
+      validTXs
+    };
   }
 
   findUTXO(address) {
-    const db = level(DB);
-    const UTXOs = [];
-
-    return new Promise((resolve, reject) => {
-      db.createReadStream()
-        .on('data', ({ }) => {
-        })
-        .on('error', (err) => {
-          reject(err);
-        })
-        .on('close', () => {
-        })
-        .on('end', () => {
-          resolve('')
-        })
-      ;
+    const db = new DBEnv();
+    const dbOp = db.exec('utxo');
+    const utxo = [];
+    dbOp((dbi, txn) => {
+      const cursor = new lmdb.Cursor(txn, dbi);
+      for(let found = cursor.goToFirst(); found != null; found = cursor.goToNext()) {
+        const txId = found;
+        const vouts = JSON.parse(cursor.getCurrentString(found));
+        vouts.forEach((out) => {
+          if(new TxOutput(out).canBeUnlockWith(address)) {
+            utxo.push(new TxOutput(out));
+          }
+        });
+      }
     });
+
+    return utxo;
   }
 }
 

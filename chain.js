@@ -236,7 +236,7 @@ class BlockChain {
           if (!unspentTXs[tx.id]) {
             unspentTXs[tx.id] = [];
           }
-          unspentTXs[tx.id].concat(tx.vout);
+          unspentTXs[tx.id] = [...unspentTXs[tx.id], ...tx.vout];
         } else {
           for (let i = 0; i < tx.vout.length; i++) {
             if (!spentTXOs[tx.id].find(idx => idx === i)) {
@@ -265,19 +265,7 @@ class BlockChain {
   }
 
   findUTXONew() {
-    const UTXOs = {};
-
-    this.findUnspentTransactionsNew().forEach((utx) => {
-      utx.vout.forEach((out) => {
-        if (!UTXOs[utx.id]) {
-          UTXOs[utx.id] = [];
-        }
-
-        UTXOs[utx.id].push(out);
-      });
-    });
-
-    return UTXOs;
+    return this.findUnspentTransactionsNew();
   }
 
   findUTXO(address) {

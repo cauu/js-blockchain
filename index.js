@@ -26,10 +26,10 @@ function send(from, to, amount, bc) {
    return Transaction.createUTXOTransaction(from, to, amount, bc);
 }
 
-const getBalance = (bc) => (address) => {
+const getBalance = (utxo) => (address) => {
   let acc = 0;
 
-  const outs = bc.findUTXO(address);
+  const outs = utxo.findUTXO(address);
   outs.forEach((out) => {
     acc += out.value;
   });
@@ -77,13 +77,20 @@ const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 //   ;
 // });
 
+new DBEnv().close();
 const chain = Chain.newBlockChain(address1);
-// chain.print();
-// chain.mineBlock([], address1);
 const u = new UTXO(chain);
-// u.reIndex();
-// u.findSpendableOuputs();
+console.log(getBalance(u)(address1));
+console.log(getBalance(u)(address2));
 const tx = send(address1, address2, 5, chain);
 chain.mineBlock([tx], address2);
 u.reIndex();
-u.findSpendableOuputs();
+console.log(getBalance(u)(address1));
+console.log(getBalance(u)(address2));
+new DBEnv().close();
+// u.reIndex();
+// const tx = send(address1, address2, 5, chain);
+// chain.mineBlock([tx], address2);
+// u.reIndex();
+// console.log(getBalance(u)(address1));
+// console.log(getBalance(u)(address2));
