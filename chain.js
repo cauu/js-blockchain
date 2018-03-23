@@ -228,13 +228,10 @@ class BlockChain {
          * 2. 现在应改为只要spentTXOs中存在不在spentTXOs[tx.id]中的tx，就将tx保存起来
          */
         if (!spentTXOs[tx.id]) {
-          if (!unspentTXs[tx.id]) {
-            unspentTXs[tx.id] = [];
-          }
-          unspentTXs[tx.id] = [...unspentTXs[tx.id], ...tx.vout];
+          unspentTXs[tx.id] = [...(unspentTXs[tx.id]||[]), ...tx.vout];
         } else {
           for (let i = 0; i < tx.vout.length; i++) {
-            if (!spentTXOs[tx.id] || !spentTXOs[tx.id].find(outIdx => outIdx === i)) {
+            if (spentTXOs[tx.id].indexOf(i) === -1) {
               if (!unspentTXs[tx.id]) {
                 unspentTXs[tx.id] = [];
               }

@@ -24,7 +24,7 @@ class Transaction {
     if (!data) {
       // data = `This is a reward to ${to} at ${createdAt}`;
       data = to;
-    }
+    } 
 
     const vin = [new TxInput({ txId: '', vout: -1, pubKey: null, signature: null })];
     const vout = [new TxOutput({ value: subsidy }).lock(to)];
@@ -78,8 +78,6 @@ class Transaction {
 
     const tx = new Transaction('', inputs, outputs);
     tx.id = tx.hash();
-
-    console.log(inputs, outputs);
 
     const prevTXs = utxo.chain.findTransactionsById(Object.keys(validTXs));
 
