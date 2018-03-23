@@ -79,6 +79,8 @@ class Transaction {
     const tx = new Transaction('', inputs, outputs);
     tx.id = tx.hash();
 
+    console.log(inputs, outputs);
+
     const prevTXs = utxo.chain.findTransactionsById(Object.keys(validTXs));
 
     tx.sign(wallets.getWallet(from).privateKey, prevTXs);

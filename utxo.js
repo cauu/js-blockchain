@@ -51,8 +51,6 @@ class UTXOSet {
       });
     });
 
-    console.log('done reindex');
-
     return utxos;
   }
 

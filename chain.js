@@ -110,7 +110,6 @@ class BlockChain {
     const newBlock = Block.newBlock([coinBaseTx, ...verifiedTxs], hash);
 
     chainDbOp((dbi, txn) => {
-      console.log(newBlock);
       txn.putString(dbi, newBlock.hash, newBlock.serialize());
       txn.putString(dbi, 'l', newBlock.hash);
     });
