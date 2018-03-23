@@ -21,7 +21,7 @@ class Transaction {
   static createCoinbaseTransaction(to, data) {
     const createdAt = new Date().getTime();
 
-    if(!data) {
+    if (!data) {
       // data = `This is a reward to ${to} at ${createdAt}`;
       data = to;
     }
@@ -45,15 +45,15 @@ class Transaction {
    *   3. 根据这些output生成对应的input和output，同时对所有的input进行签名
    *   4. 将上一步的结果打包成transaction放入transaction池中
    */
-  static createUTXOTransaction(from, to, amount, chain) {
+  static createUTXOTransaction(from, to, amount, utxo) {
     const inputs = [];
     const outputs = [];
     const wallets = new Wallets();
 
-    const { acc, validTXs } = chain.findSpendableOutputs(from, amount);
+    const { acc, validTXs } = utxo.findSpendableOutputs(from, amount);
 
     // return chain.findSpendableOutputs(from, amount).then(({ acc, validTXs }) => {
-    if(acc < amount) {
+    if (acc < amount) {
       throw new Error(`Error: not enough funds on ${from}.`);
     }
 
@@ -70,7 +70,7 @@ class Transaction {
     payment.lock(to);
     outputs.push(payment);
 
-    if(acc > amount) {
+    if (acc > amount) {
       const change = new TxOutput({ value: acc - amount })
       change.lock(from);
       outputs.push(change);
@@ -79,7 +79,7 @@ class Transaction {
     const tx = new Transaction('', inputs, outputs);
     tx.id = tx.hash();
 
-    const prevTXs = chain.findTransactionsById(Object.keys(validTXs));
+    const prevTXs = utxo.chain.findTransactionsById(Object.keys(validTXs));
 
     tx.sign(wallets.getWallet(from).privateKey, prevTXs);
 
@@ -88,7 +88,7 @@ class Transaction {
 
   constructor(id, vin, vout, createdAt) {
     this.id = id;
-    this.vin =  vin || [];
+    this.vin = vin || [];
     this.vout = vout || [];
     this.createdAt = createdAt || new Date().getTime();
   }
@@ -104,7 +104,7 @@ class Transaction {
     /**
      * @desc coinbase的tx不存在input，因此也不需要对其进行签名
      */
-    if(this.isCoinbase()) {
+    if (this.isCoinbase()) {
       return;
     }
 
@@ -153,8 +153,8 @@ class Transaction {
        * publicKey可以解锁output,
        * 并且用户能证明他/她拥有该publickey对应的privateKey
        */
-      if(Wallet.hashPubKey(this.vin[index].pubKey) !== prevTx.vout[txin.vout].pubKeyHash
-         || !ec.keyFromPublic(pubKey).verify(txCopy.id, this.vin[index].signature)) {
+      if (Wallet.hashPubKey(this.vin[index].pubKey) !== prevTx.vout[txin.vout].pubKeyHash
+        || !ec.keyFromPublic(pubKey).verify(txCopy.id, this.vin[index].signature)) {
         return false;
       }
     });

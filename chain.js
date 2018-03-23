@@ -32,8 +32,6 @@ class BlockChain {
       chainDbOp((dbi, txn) => txn.putString(dbi, genesis.hash, genesis.serialize()));
     }
 
-    db.close();
-
     return new BlockChain(db);
   }
 
@@ -52,8 +50,6 @@ class BlockChain {
 
     const blockStr = chainDbOp((dbi, txn) => txn.getString(dbi, hash));
 
-    this.db.close();
-
     return Block.deserializeBlock(blockStr);
   }
 
@@ -61,8 +57,6 @@ class BlockChain {
     const chainDbOp = this.db.exec('chain');
 
     const lastHash = chainDbOp((dbi, txn) => txn.getString(dbi, 'l', { keyIsString: true }));
-
-    this.db.close();
 
     return lastHash;
   }
@@ -115,9 +109,11 @@ class BlockChain {
 
     const newBlock = Block.newBlock([coinBaseTx, ...verifiedTxs], hash);
 
-    chainDbOp((dbi, txn) => txn.putString(dbi, newBlock.hash, newBlock.serialize()));
-
-    chainDbOp((dbi, txn) => txn.putString(dbi, 'l', newBlock.hash));
+    chainDbOp((dbi, txn) => {
+      console.log(newBlock);
+      txn.putString(dbi, newBlock.hash, newBlock.serialize());
+      txn.putString(dbi, 'l', newBlock.hash);
+    });
 
     return newBlock;
   }
@@ -239,7 +235,7 @@ class BlockChain {
           unspentTXs[tx.id] = [...unspentTXs[tx.id], ...tx.vout];
         } else {
           for (let i = 0; i < tx.vout.length; i++) {
-            if (!spentTXOs[tx.id].find(idx => idx === i)) {
+            if (!spentTXOs[tx.id] || !spentTXOs[tx.id].find(outIdx => outIdx === i)) {
               if (!unspentTXs[tx.id]) {
                 unspentTXs[tx.id] = [];
               }

@@ -1,12 +1,13 @@
 const fs = require('fs');
 
 const Wallet = require('./wallet');
+const DBEnv = require('./db-env');
 
 const WALLET_FILE = './wallets.json';
 
 class Wallets {
   constructor() {
-    if(!Wallets.instance) {
+    if (!Wallets.instance) {
       this.wallets = this.loadWallets();
 
       Wallets.instance = this;
@@ -32,13 +33,16 @@ class Wallets {
   saveWallets() {
     try {
       fs.writeFileSync('./wallets.json', JSON.stringify(this.wallets), 'utf8');
-    } catch(e) {
+    } catch (e) {
       console.log(e);
     }
   }
 
   loadWallets() {
     try {
+      const db = new DBEnv();
+      const walletDbOp = db.exec('wallet');
+
       const rw = JSON.parse(fs.readFileSync('./wallets.json', 'utf8'));
       const wallets = {};
 
@@ -47,7 +51,7 @@ class Wallets {
       });
 
       return wallets;
-    } catch(e) {
+    } catch (e) {
       console.log(e);
       return {};
     }

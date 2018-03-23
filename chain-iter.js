@@ -1,3 +1,4 @@
+const lmdb = require('node-lmdb');
 /**
  * @desc 从后往前倒序遍历整个区块链
  * @todo fix unable iterToBegining
@@ -12,7 +13,7 @@ class ChainIterator {
   foreach(cb) {
     let block;
 
-    while(block = this.next()) {
+    while (block = this.next()) {
       cb && cb(block);
     }
   }
@@ -24,11 +25,11 @@ class ChainIterator {
       return block;
     };
 
-    if(this.nextHash === '') {
+    if (this.nextHash === '') {
       return null;
     }
 
-    if(!this.nextHash && this.nextHash !== '') {
+    if (!this.nextHash && this.nextHash !== '') {
       return iterToNext(this.chain.getLastHash());
     }
 

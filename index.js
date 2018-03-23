@@ -22,8 +22,8 @@ const DB = 'chainDB';
 
 const transactionPool = [];
 
-function send(from, to, amount, bc) {
-   return Transaction.createUTXOTransaction(from, to, amount, bc);
+function send(from, to, amount, utxo) {
+  return Transaction.createUTXOTransaction(from, to, amount, utxo);
 }
 
 const getBalance = (utxo) => (address) => {
@@ -45,9 +45,9 @@ function createWallet() {
  * @description
  * 首先创建钱包，才能得到这些地址
  */
-const address1 = '1WbB7DGHufFWjfv3UTpnDHW2eHNw1je';
-const address2 = '1yS1Cmg38cg3tPQwJJcdnhhpBXtEykh';
-const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
+const address1 = '1nXgNDapQ2MbQHsLS3uEn6qAjm8xXGQ';
+const address2 = '1bqTkYuWTHeYbDpeAjFJd2d48RkUAxq';
+// const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 
 // const myWallet = createWallet();
 // const targetWallet = createWallet();
@@ -77,12 +77,10 @@ const address3 = '1Cf9vcDdKUgR2scveiXJqA2xNRj2wP5';
 //   ;
 // });
 
-new DBEnv().close();
 const chain = Chain.newBlockChain(address1);
 const u = new UTXO(chain);
-console.log(getBalance(u)(address1));
-console.log(getBalance(u)(address2));
-const tx = send(address1, address2, 5, chain);
+
+const tx = send(address1, address2, 10, u);
 chain.mineBlock([tx], address2);
 u.reIndex();
 console.log(getBalance(u)(address1));

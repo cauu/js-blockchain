@@ -38,8 +38,8 @@ class UTXOSet {
     utxoDbOp((dbi, txn) => {
       const cursor = new lmdb.Cursor(txn, dbi);
 
-      for(let found = cursor.goToFirst(); found !== null; found = cursor.goToNext()) {
-        cursor.del && cursor.del();
+      for (let found = cursor.goToFirst(); found !== null; found = cursor.goToNext()) {
+        cursor.del();
       }
     });
 
@@ -51,10 +51,12 @@ class UTXOSet {
       });
     });
 
+    console.log('done reindex');
+
     return utxos;
   }
 
-  findSpendableOuputs(address, amount) {
+  findSpendableOutputs(address, amount) {
     /**
      * @desc
      * {[txId]: [...outputIndexs]}
@@ -67,14 +69,17 @@ class UTXOSet {
 
     dbOp((dbi, txn) => {
       const cursor = new lmdb.Cursor(txn, dbi);
-      for(let found = cursor.goToFirst(); found != null; found = cursor.goToNext()) {
+      for (let found = cursor.goToFirst(); found != null; found = cursor.goToNext()) {
+        if (found === 'l') {
+          continue;
+        }
         const txId = found;
         const vouts = JSON.parse(cursor.getCurrentString(found));
         vouts.forEach((out, outIdx) => {
-          if(new TxOutput(out).canBeUnlockWith(address) && acc < amount) {
+          if (new TxOutput(out).canBeUnlockWith(address) && acc < amount) {
             acc += out.value;
 
-            if(!validTXs[txId]) {
+            if (!validTXs[txId]) {
               validTXs[txId] = [];
             }
 
@@ -82,7 +87,7 @@ class UTXOSet {
           }
         });
 
-        if(acc > amount) break;
+        if (acc > amount) break;
       }
     });
 
@@ -98,11 +103,11 @@ class UTXOSet {
     const utxo = [];
     dbOp((dbi, txn) => {
       const cursor = new lmdb.Cursor(txn, dbi);
-      for(let found = cursor.goToFirst(); found != null; found = cursor.goToNext()) {
+      for (let found = cursor.goToFirst(); found != null; found = cursor.goToNext()) {
         const txId = found;
         const vouts = JSON.parse(cursor.getCurrentString(found));
         vouts.forEach((out) => {
-          if(new TxOutput(out).canBeUnlockWith(address)) {
+          if (new TxOutput(out).canBeUnlockWith(address)) {
             utxo.push(new TxOutput(out));
           }
         });

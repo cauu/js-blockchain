@@ -4,8 +4,13 @@ const DB_PATH = __dirname + '/chainDB';
 
 class DBEnv {
   constructor() {
-    if(!DBEnv.instance) {
+    if (!DBEnv.instance) {
       DBEnv.instance = this;
+
+      this.dbiMap = {
+        'chain': null,
+        'utxo': null
+      };
 
       this.init();
     }
@@ -18,21 +23,25 @@ class DBEnv {
 
     this.env.open({
       path: DB_PATH,
-      mapSize: 2 * 1024 * 1024,
+      mapSize: 2 * 1024 * 1024 * 1024,
       maxDbs: 3
     });
   }
 
   getDbi(name) {
-    if(!this.env) {
+    if (!this.env) {
       this.init();
     }
 
-    return this.env.openDbi({
-      name,
-      create: true,
-      keyIsString: true
-    });
+    if (!this.dbiMap[name]) {
+      this.dbiMap[name] = this.env.openDbi({
+        name,
+        create: true,
+        keyIsString: true
+      });
+    }
+
+    return this.dbiMap[name];
   }
 
   getEnv() {
@@ -49,13 +58,20 @@ class DBEnv {
 
       txn.commit();
 
-      dbi.close();
-      
+      // dbi.close();
+
       return value;
     }
   }
 
   close() {
+    const { chain, utxo } = this.dbiMap;
+    chain && chain.close();
+    utxo && utxo.close();
+    this.dbiMap = {
+      chain: null,
+      utxo: null
+    };
     this.env && this.env.close();
     this.env = null;
   }

@@ -57,7 +57,7 @@ class Block {
       });
 
       return blockObj;
-    } catch(e) {
+    } catch (e) {
       console.log(e);
     }
   }
@@ -74,7 +74,7 @@ class Block {
 
   setHash() {
     const headers = this.prevBlockHash + this.data + this.timeStamp;
-    
+
     this.hash = sha256(headers);
   }
 }

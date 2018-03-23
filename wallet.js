@@ -42,13 +42,17 @@ class Wallet {
   }
 
   getAddress() {
-    const publicKeyHash = Wallet.hashPubKey(this.publicKey);
-    const versionPayload = VERSION + publicKeyHash;
-    const checksum = Wallet.checksum(versionPayload);
+    try {
+      const publicKeyHash = Wallet.hashPubKey(this.publicKey);
+      const versionPayload = VERSION + publicKeyHash;
+      const checksum = Wallet.checksum(versionPayload);
 
-    const fullPayload = versionPayload + checksum;
+      const fullPayload = versionPayload + checksum;
 
-    return Base58.encode(Buffer.from(fullPayload, 'hex'));
+      return Base58.encode(Buffer.from(fullPayload, 'hex'));
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   /**
@@ -63,7 +67,7 @@ class Wallet {
   }
 
   static checksum(payload) {
-    const firstSHA  = sha256(payload);
+    const firstSHA = sha256(payload);
     const secondSHA = sha256(firstSHA);
 
     return secondSHA.slice(-ADDRESS_CHECKSUM_LEN);
