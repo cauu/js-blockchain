@@ -4,6 +4,7 @@ const POW = require('./pow');
 const TxInput = require('./tx-input');
 const TxOutput = require('./tx-output');
 const Transaction = require('./transaction');
+const MerkleTree = require('./merkle-tree');
 
 /**
  * @todo 使用transaction代替之前的data
@@ -76,6 +77,22 @@ class Block {
     const headers = this.prevBlockHash + this.data + this.timeStamp;
 
     this.hash = sha256(headers);
+  }
+
+  /**
+   * @desc
+   * 
+   */
+  hashTransactions() {
+    const transactions = [];
+
+    this.transactions.forEach((tx) => {
+      transactions.push(tx.serialize());
+    });
+
+    mTree = MerkleTree.newMerkleTree(transactions);
+
+    return mTree.root.data;
   }
 }
 
